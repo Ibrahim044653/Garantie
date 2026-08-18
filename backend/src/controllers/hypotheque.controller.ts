@@ -39,43 +39,48 @@ function enrichHypotheque(h: Record<string, unknown>) {
 
 export const getAll = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { client, zone, statut, alerte, page = '1', limit = '20' } = req.query;
+    const { client, search, zone, statut, alerte, page = '1', limit = '20' } = req.query;
 
     const where: Record<string, unknown> = {};
 
-    if (client) {
+    const searchTerm = (client || search) as string | undefined;
+    if (searchTerm) {
       where.OR = [
-        { nomClient: { contains: client as string } },
-        { codeClient: { contains: client as string } },
+        { nomClient: { contains: searchTerm } },
+        { codeClient: { contains: searchTerm } },
+        { numeroPret: { contains: searchTerm } },
+        { numeroTitreFoncier: { contains: searchTerm } },
+        { ville: { contains: searchTerm } },
       ];
     }
     if (zone) where.zoneGeographique = zone;
-    if (statut) where.statutOccupation = statut;
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
     const take = parseInt(limit as string);
 
-    let hypotheques = await prisma.hypotheque.findMany({
+    const allHypotheques = await prisma.hypotheque.findMany({
       where,
-      skip,
-      take,
       orderBy: { createdAt: 'desc' },
       include: { alertes: { where: { lu: false } } },
     });
 
-    // Filter by alerte type if specified
+    let enriched = allHypotheques.map((h) => enrichHypotheque(h as unknown as Record<string, unknown>));
+
+    // Post-enrichment filters (computed fields)
+    if (statut) {
+      enriched = enriched.filter((h) => (h as Record<string, unknown>).statut === statut);
+    }
     if (alerte) {
-      hypotheques = hypotheques.filter((h) =>
-        h.alertes.some((a) => a.type === alerte),
+      enriched = enriched.filter((h) =>
+        ((h as Record<string, unknown>).alertes as Array<{ type: string }>)?.some((a) => a.type === alerte),
       );
     }
 
-    const total = await prisma.hypotheque.count({ where });
-
-    const enriched = hypotheques.map((h) => enrichHypotheque(h as unknown as Record<string, unknown>));
+    const total = enriched.length;
+    const paginated = enriched.slice(skip, skip + take);
 
     res.json({
-      data: enriched,
+      data: paginated,
       pagination: {
         total,
         page: parseInt(page as string),

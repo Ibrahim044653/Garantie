@@ -26,7 +26,7 @@ const hypothequeValidation = [
   body('ville').notEmpty().withMessage('Ville required'),
   body('zoneGeographique').isIn(ZONES).withMessage(`Zone must be one of: ${ZONES.join(', ')}`),
   body('statutOccupation').isIn(STATUTS_OCC).withMessage(`Statut must be one of: ${STATUTS_OCC.join(', ')}`),
-  body('valeurExpertiseInitiale').isFloat({ min: 0 }).withMessage('Valeur expertise must be a positive number'),
+  body('valeurExpertiseInitiale').isFloat({ min: 0.01 }).withMessage('Valeur expertise must be a positive number (> 0)'),
   body('dateExpertise').isISO8601().withMessage('Date expertise must be a valid date'),
   body('montantInscription').isFloat({ min: 0 }).withMessage('Montant inscription must be a positive number'),
   body('datePeremptionInscription').isISO8601().withMessage('Date péremption must be a valid date'),
