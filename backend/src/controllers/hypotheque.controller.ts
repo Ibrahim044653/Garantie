@@ -368,6 +368,72 @@ export const importCSV = async (req: AuthRequest, res: Response): Promise<void> 
   }
 };
 
+export const exportCsv = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { search, zone, statut } = req.query as Record<string, string>;
+
+    const where: Record<string, unknown> = {};
+    if (search) {
+      where.OR = [
+        { nomClient: { contains: search } },
+        { codeClient: { contains: search } },
+      ];
+    }
+    if (zone) where.zoneGeographique = `ZONE_${zone}`;
+    if (statut) where.statutOccupation = statut;
+
+    const hypotheques = await prisma.hypotheque.findMany({
+      where,
+      orderBy: [{ zoneGeographique: 'asc' }, { nomClient: 'asc' }],
+      include: { alertes: { where: { lu: false } } },
+    });
+
+    const headers = [
+      'Code Client', 'Nom Client', 'N° Prêt', 'Titre Foncier', 'Nature Bien',
+      'Ville', 'Zone', 'Statut Occupation', 'Valeur Expertise (FCFA)', 'Date Expertise',
+      'Décote Zone (%)', 'Décote Ancienneté (%)', 'Décote Occupation (%)', 'Décote Totale (%)',
+      'VNC (FCFA)', 'Solde Prêt (FCFA)', 'LTV (%)', 'Montant Inscription (FCFA)',
+      'Rang', 'Date Péremption', 'Statut', 'Alertes',
+    ];
+
+    const rows = hypotheques.map((h) => {
+      const d = calculerDecotes(
+        h.valeurExpertiseInitiale, h.dateExpertise, h.zoneGeographique,
+        h.statutOccupation, h.soldePret, h.natureBien,
+      );
+      let statut = 'OK';
+      if (d.hasShortfall) statut = 'SHORTFALL';
+      else if (d.decoteAnciennete === 100) statut = 'EXPERTISE_EXPIREE';
+      else if (d.loanToValue > 80) statut = 'RISQUE_ELEVE';
+      else if (h.alertes.length > 0) statut = 'ALERTE';
+
+      const alertTypes = [...new Set(h.alertes.map((a) => a.type))].join('|');
+
+      return [
+        h.codeClient, h.nomClient, h.numeroPret, h.numeroTitreFoncier, h.natureBien,
+        h.ville, h.zoneGeographique, h.statutOccupation,
+        h.valeurExpertiseInitiale.toString(), h.dateExpertise.toLocaleDateString('fr-FR'),
+        d.decoteZone.toString(), d.decoteAnciennete.toString(), d.decoteOccupation.toString(),
+        d.decoteTotale.toString(), Math.round(d.valeurNetteCouverture).toString(),
+        h.soldePret.toString(), d.loanToValue.toFixed(2),
+        h.montantInscription.toString(), h.rangHypotheque.toString(),
+        h.datePeremptionInscription.toLocaleDateString('fr-FR'),
+        statut, alertTypes,
+      ].map((v) => `"${v}"`).join(';');
+    });
+
+    const csv = [headers.map((h) => `"${h}"`).join(';'), ...rows].join('\n');
+    const filename = `hypotheques-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send('﻿' + csv);
+  } catch (err) {
+    logger.error('exportCsv error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 export const downloadDocument = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
