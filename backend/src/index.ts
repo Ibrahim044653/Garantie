@@ -9,6 +9,7 @@ import { hypothequeRouter } from './routes/hypotheque.routes';
 import { dashboardRouter } from './routes/dashboard.routes';
 import { reportingRouter } from './routes/reporting.routes';
 import { userRouter } from './routes/user.routes';
+import { alerteRouter } from './routes/alerte.routes';
 import { generateAlerts } from './services/alert.service';
 
 const app = express();
@@ -53,6 +54,8 @@ app.use('/api/hypotheques', hypothequeRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/reporting', reportingRouter);
 app.use('/api/users', userRouter);
+app.use('/api/admin/users', userRouter);
+app.use('/api/alertes', alerteRouter);
 
 // 404 handler
 app.use((_req, res) => {
