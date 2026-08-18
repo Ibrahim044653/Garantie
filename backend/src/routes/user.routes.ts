@@ -10,14 +10,16 @@ userRouter.use(authenticate, requireAdmin);
 
 userRouter.get('/', getAll);
 
+const VALID_ROLES = ['ADMIN', 'GESTIONNAIRE_GARANTIES', 'RESPONSABLE_RISQUES', 'ENGAGEMENTS', 'AUDIT_INTERNE'];
+
 userRouter.post(
   '/',
   [
     body('email').isEmail().withMessage('Valid email required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     body('nom').notEmpty().withMessage('Nom required'),
-    body('prenom').notEmpty().withMessage('Prénom required'),
-    body('role').optional().isIn(['ADMIN', 'GESTIONNAIRE_GARANTIES', 'RESPONSABLE_RISQUES']),
+    body('prenom').optional().isString(),
+    body('role').optional().isIn(VALID_ROLES),
   ],
   validate,
   create,
@@ -28,7 +30,7 @@ userRouter.put(
   [
     body('email').optional().isEmail(),
     body('password').optional().isLength({ min: 6 }),
-    body('role').optional().isIn(['ADMIN', 'GESTIONNAIRE_GARANTIES', 'RESPONSABLE_RISQUES']),
+    body('role').optional().isIn(VALID_ROLES),
   ],
   validate,
   update,

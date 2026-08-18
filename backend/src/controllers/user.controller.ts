@@ -29,7 +29,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
       return;
     }
 
-    const validRoles = ['ADMIN', 'GESTIONNAIRE_GARANTIES', 'RESPONSABLE_RISQUES'];
+    const validRoles = ['ADMIN', 'GESTIONNAIRE_GARANTIES', 'RESPONSABLE_RISQUES', 'ENGAGEMENTS', 'AUDIT_INTERNE'];
     if (role && !validRoles.includes(role)) {
       res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
       return;

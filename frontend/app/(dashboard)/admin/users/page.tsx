@@ -94,9 +94,13 @@ export default function AdminUsersPage() {
     }
     setSaving(true);
     try {
-      const payload = editing
-        ? { nom: form.nom, email: form.email, role: form.role, ...(form.password ? { password: form.password } : {}) }
-        : form;
+      // Split "Prénom Nom" → prenom + nom for backend compatibility
+    const parts = form.nom.trim().split(' ');
+    const prenom = parts[0] || '';
+    const nomOnly = parts.slice(1).join(' ') || prenom;
+    const payload = editing
+        ? { nom: nomOnly, prenom, email: form.email, role: form.role, ...(form.password ? { password: form.password } : {}) }
+        : { nom: nomOnly, prenom, email: form.email, password: form.password, role: form.role };
       if (editing) {
         await usersApi.update(editing.id, payload);
       } else {
