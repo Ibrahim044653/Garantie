@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./hypotheque.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  nom       String
+  prenom    String
+  role      String   @default("GESTIONNAIRE_GARANTIES")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Hypotheque {
+  id                       Int      @id @default(autoincrement())
+  codeClient               String
+  nomClient                String
+  numeroPret               String   @unique
+  numeroTitreFoncier       String
+  natureBien               String
+  ville                    String
+  quartier                 String?
+  lot                      String?
+  ilot                     String?
+  zoneGeographique         String
+  statutOccupation         String
+  valeurExpertiseInitiale  Float
+  dateExpertise            DateTime
+  montantInscription       Float
+  rangHypotheque           Int      @default(1)
+  datePeremptionInscription DateTime
+  soldePret                Float
+  pjExpertisePath          String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  historique HistoriqueValeur[]
+  alertes    Alert[]
+}
+
+model HistoriqueValeur {
+  id                  Int      @id @default(autoincrement())
+  hypothequeId        Int
+  valeurExpertise     Float
+  dateExpertise       DateTime
+  zoneGeographique    String
+  statutOccupation    String
+  decoteZone          Float
+  decoteAnciennete    Float
+  decoteOccupation    Float
+  decoteTotale        Float
+  valeurNetteCouverture Float
+  loanToValue         Float
+  modifiePar          String
+  dateModification    DateTime @default(now())
+  motif               String?
+
+  hypotheque Hypotheque @relation(fields: [hypothequeId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id           Int      @id @default(autoincrement())
+  hypothequeId Int
+  type         String
+  message      String
+  dateEcheance DateTime?
+  lu           Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  hypotheque Hypotheque @relation(fields: [hypothequeId], references: [id], onDelete: Cascade)
+}

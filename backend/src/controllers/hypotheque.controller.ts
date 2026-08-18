@@ -1,0 +1,397 @@
+import { Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import path from 'path';
+import fs from 'fs';
+import { AuthRequest } from '../middleware/auth.middleware';
+import { calculerDecotes } from '../services/calcul.service';
+import { logger } from '../services/logger';
+
+const prisma = new PrismaClient();
+
+// Enrich a hypotheque with computed fields + frontend-friendly aliases
+function enrichHypotheque(h: Record<string, unknown>) {
+  const decotes = calculerDecotes(
+    h.valeurExpertiseInitiale as number,
+    h.dateExpertise as Date,
+    h.zoneGeographique as string,
+    h.statutOccupation as string,
+    h.soldePret as number,
+    h.natureBien as string,
+  );
+  const ltv = decotes.loanToValue;
+  const statut = decotes.hasShortfall
+    ? 'SHORTFALL'
+    : decotes.decoteAnciennete >= 100
+    ? 'EXPERTISE_OBSOLETE'
+    : decotes.decoteAnciennete >= 10
+    ? 'ALERTE'
+    : 'OK';
+  return {
+    ...h,
+    ...decotes,
+    // Frontend-friendly aliases
+    vnc: decotes.valeurNetteCouverture,
+    ltv,
+    statut,
+  };
+}
+
+export const getAll = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { client, zone, statut, alerte, page = '1', limit = '20' } = req.query;
+
+    const where: Record<string, unknown> = {};
+
+    if (client) {
+      where.OR = [
+        { nomClient: { contains: client as string } },
+        { codeClient: { contains: client as string } },
+      ];
+    }
+    if (zone) where.zoneGeographique = zone;
+    if (statut) where.statutOccupation = statut;
+
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    const take = parseInt(limit as string);
+
+    let hypotheques = await prisma.hypotheque.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+      include: { alertes: { where: { lu: false } } },
+    });
+
+    // Filter by alerte type if specified
+    if (alerte) {
+      hypotheques = hypotheques.filter((h) =>
+        h.alertes.some((a) => a.type === alerte),
+      );
+    }
+
+    const total = await prisma.hypotheque.count({ where });
+
+    const enriched = hypotheques.map((h) => enrichHypotheque(h as unknown as Record<string, unknown>));
+
+    res.json({
+      data: enriched,
+      pagination: {
+        total,
+        page: parseInt(page as string),
+        limit: take,
+        totalPages: Math.ceil(total / take),
+      },
+    });
+  } catch (err) {
+    logger.error('getAll error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getById = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    const h = await prisma.hypotheque.findUnique({
+      where: { id },
+      include: {
+        alertes: { orderBy: { createdAt: 'desc' } },
+        historique: { orderBy: { dateModification: 'desc' } },
+      },
+    });
+
+    if (!h) {
+      res.status(404).json({ error: 'Hypothèque not found' });
+      return;
+    }
+
+    res.json(enrichHypotheque(h as unknown as Record<string, unknown>));
+  } catch (err) {
+    logger.error('getById error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const create = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const {
+      codeClient, nomClient, numeroPret, numeroTitreFoncier,
+      natureBien, ville, quartier, lot, ilot, zoneGeographique,
+      statutOccupation, valeurExpertiseInitiale, dateExpertise,
+      montantInscription, rangHypotheque, datePeremptionInscription, soldePret,
+    } = req.body;
+
+    const pjExpertisePath = req.file ? req.file.filename : undefined;
+
+    const h = await prisma.hypotheque.create({
+      data: {
+        codeClient,
+        nomClient,
+        numeroPret,
+        numeroTitreFoncier,
+        natureBien,
+        ville,
+        quartier: quartier || null,
+        lot: lot || null,
+        ilot: ilot || null,
+        zoneGeographique,
+        statutOccupation,
+        valeurExpertiseInitiale: parseFloat(valeurExpertiseInitiale),
+        dateExpertise: new Date(dateExpertise),
+        montantInscription: parseFloat(montantInscription),
+        rangHypotheque: parseInt(rangHypotheque) || 1,
+        datePeremptionInscription: new Date(datePeremptionInscription),
+        soldePret: parseFloat(soldePret),
+        pjExpertisePath: pjExpertisePath || null,
+      },
+    });
+
+    logger.info(`Hypothèque created: ${h.numeroPret} by ${req.user!.email}`);
+    res.status(201).json(enrichHypotheque(h as unknown as Record<string, unknown>));
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes('Unique constraint')) {
+      res.status(409).json({ error: 'Numéro de prêt already exists' });
+      return;
+    }
+    logger.error('create error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const update = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+
+    const existing = await prisma.hypotheque.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Hypothèque not found' });
+      return;
+    }
+
+    const {
+      codeClient, nomClient, nomClient: _nc, numeroPret, numeroTitreFoncier,
+      natureBien, ville, quartier, lot, ilot, zoneGeographique,
+      statutOccupation, valeurExpertiseInitiale, dateExpertise,
+      montantInscription, rangHypotheque, datePeremptionInscription, soldePret,
+    } = req.body;
+
+    const pjExpertisePath = req.file ? req.file.filename : existing.pjExpertisePath;
+
+    const h = await prisma.hypotheque.update({
+      where: { id },
+      data: {
+        codeClient: codeClient ?? existing.codeClient,
+        nomClient: nomClient ?? existing.nomClient,
+        numeroPret: numeroPret ?? existing.numeroPret,
+        numeroTitreFoncier: numeroTitreFoncier ?? existing.numeroTitreFoncier,
+        natureBien: natureBien ?? existing.natureBien,
+        ville: ville ?? existing.ville,
+        quartier: quartier !== undefined ? quartier || null : existing.quartier,
+        lot: lot !== undefined ? lot || null : existing.lot,
+        ilot: ilot !== undefined ? ilot || null : existing.ilot,
+        zoneGeographique: zoneGeographique ?? existing.zoneGeographique,
+        statutOccupation: statutOccupation ?? existing.statutOccupation,
+        valeurExpertiseInitiale: valeurExpertiseInitiale != null ? parseFloat(valeurExpertiseInitiale) : existing.valeurExpertiseInitiale,
+        dateExpertise: dateExpertise ? new Date(dateExpertise) : existing.dateExpertise,
+        montantInscription: montantInscription != null ? parseFloat(montantInscription) : existing.montantInscription,
+        rangHypotheque: rangHypotheque != null ? parseInt(rangHypotheque) : existing.rangHypotheque,
+        datePeremptionInscription: datePeremptionInscription ? new Date(datePeremptionInscription) : existing.datePeremptionInscription,
+        soldePret: soldePret != null ? parseFloat(soldePret) : existing.soldePret,
+        pjExpertisePath,
+      },
+    });
+
+    logger.info(`Hypothèque updated: ${h.numeroPret} by ${req.user!.email}`);
+    res.json(enrichHypotheque(h as unknown as Record<string, unknown>));
+    void _nc; // suppress unused warning
+  } catch (err) {
+    logger.error('update error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const remove = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+
+    const existing = await prisma.hypotheque.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Hypothèque not found' });
+      return;
+    }
+
+    // Delete associated file
+    if (existing.pjExpertisePath) {
+      const filePath = path.join(__dirname, '..', '..', 'uploads', existing.pjExpertisePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    await prisma.hypotheque.delete({ where: { id } });
+    logger.info(`Hypothèque deleted: ${existing.numeroPret} by ${req.user!.email}`);
+    res.json({ message: 'Hypothèque deleted successfully' });
+  } catch (err) {
+    logger.error('remove error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getHistorique = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    const historique = await prisma.historiqueValeur.findMany({
+      where: { hypothequeId: id },
+      orderBy: { dateModification: 'desc' },
+    });
+    res.json(historique);
+  } catch (err) {
+    logger.error('getHistorique error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const reevaluer = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    const { motif, nouvelleValeur, nouvelleDate, nouvelleZone, nouveauStatut } = req.body;
+
+    const h = await prisma.hypotheque.findUnique({ where: { id } });
+    if (!h) {
+      res.status(404).json({ error: 'Hypothèque not found' });
+      return;
+    }
+
+    const valeur = nouvelleValeur ? parseFloat(nouvelleValeur) : h.valeurExpertiseInitiale;
+    const date = nouvelleDate ? new Date(nouvelleDate) : h.dateExpertise;
+    const zone = nouvelleZone || h.zoneGeographique;
+    const statut = nouveauStatut || h.statutOccupation;
+
+    const decotes = calculerDecotes(valeur, date, zone, statut, h.soldePret, h.natureBien);
+
+    // Save historical record
+    const historique = await prisma.historiqueValeur.create({
+      data: {
+        hypothequeId: id,
+        valeurExpertise: valeur,
+        dateExpertise: date,
+        zoneGeographique: zone,
+        statutOccupation: statut,
+        decoteZone: decotes.decoteZone,
+        decoteAnciennete: decotes.decoteAnciennete,
+        decoteOccupation: decotes.decoteOccupation,
+        decoteTotale: decotes.decoteTotale,
+        valeurNetteCouverture: decotes.valeurNetteCouverture,
+        loanToValue: decotes.loanToValue,
+        modifiePar: `${req.user!.prenom} ${req.user!.nom}`,
+        motif: motif || null,
+      },
+    });
+
+    // Update hypotheque
+    const updated = await prisma.hypotheque.update({
+      where: { id },
+      data: {
+        valeurExpertiseInitiale: valeur,
+        dateExpertise: date,
+        zoneGeographique: zone,
+        statutOccupation: statut,
+      },
+    });
+
+    logger.info(`Hypothèque re-evaluated: ${h.numeroPret} by ${req.user!.email}`);
+    res.json({
+      hypotheque: enrichHypotheque(updated as unknown as Record<string, unknown>),
+      historique,
+    });
+  } catch (err) {
+    logger.error('reevaluer error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const importCSV = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: 'No file provided' });
+      return;
+    }
+
+    const content = req.file.buffer.toString('utf-8');
+    const lines = content.split('\n').filter((l) => l.trim());
+
+    if (lines.length < 2) {
+      res.status(400).json({ error: 'CSV file is empty or has no data rows' });
+      return;
+    }
+
+    const headers = lines[0].split(';').map((h) => h.trim().replace(/^"|"$/g, ''));
+    const results = { created: 0, errors: [] as string[] };
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(';').map((v) => v.trim().replace(/^"|"$/g, ''));
+      const row: Record<string, string> = {};
+      headers.forEach((h, idx) => { row[h] = values[idx] || ''; });
+
+      try {
+        await prisma.hypotheque.create({
+          data: {
+            codeClient: row.codeClient,
+            nomClient: row.nomClient,
+            numeroPret: row.numeroPret,
+            numeroTitreFoncier: row.numeroTitreFoncier,
+            natureBien: row.natureBien,
+            ville: row.ville,
+            quartier: row.quartier || null,
+            lot: row.lot || null,
+            ilot: row.ilot || null,
+            zoneGeographique: row.zoneGeographique,
+            statutOccupation: row.statutOccupation,
+            valeurExpertiseInitiale: parseFloat(row.valeurExpertiseInitiale),
+            dateExpertise: new Date(row.dateExpertise),
+            montantInscription: parseFloat(row.montantInscription),
+            rangHypotheque: parseInt(row.rangHypotheque) || 1,
+            datePeremptionInscription: new Date(row.datePeremptionInscription),
+            soldePret: parseFloat(row.soldePret),
+          },
+        });
+        results.created++;
+      } catch (err) {
+        results.errors.push(`Row ${i + 1}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    }
+
+    logger.info(`CSV import: ${results.created} created, ${results.errors.length} errors`);
+    res.json(results);
+  } catch (err) {
+    logger.error('importCSV error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const downloadDocument = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    const h = await prisma.hypotheque.findUnique({ where: { id } });
+
+    if (!h) {
+      res.status(404).json({ error: 'Hypothèque not found' });
+      return;
+    }
+
+    if (!h.pjExpertisePath) {
+      res.status(404).json({ error: 'No document attached' });
+      return;
+    }
+
+    const filePath = path.join(__dirname, '..', '..', 'uploads', h.pjExpertisePath);
+    if (!fs.existsSync(filePath)) {
+      res.status(404).json({ error: 'Document file not found' });
+      return;
+    }
+
+    res.download(filePath, `expertise-${h.numeroPret}${path.extname(h.pjExpertisePath)}`);
+  } catch (err) {
+    logger.error('downloadDocument error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
