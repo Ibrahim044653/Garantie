@@ -26,8 +26,10 @@ import {
   ALERTE_TYPE_LABELS,
 } from '@/lib/format';
 import { StatusBadge, SeveriteBadge } from '@/components/shared/StatusBadge';
-import LtvGauge from '@/components/hypotheques/LtvGauge';
+import dynamic from 'next/dynamic';
 import type { Hypotheque, Alerte } from '@/types';
+
+const LtvGauge = dynamic(() => import('@/components/hypotheques/LtvGauge'), { ssr: false });
 
 interface HistoriqueEntry {
   id: number;

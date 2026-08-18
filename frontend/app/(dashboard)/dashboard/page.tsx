@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Building2,
   Wallet,
@@ -9,12 +10,14 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import StatsCard from '@/components/dashboard/StatsCard';
-import VncAreaChart from '@/components/dashboard/VncAreaChart';
-import ZoneBarChart from '@/components/dashboard/ZoneBarChart';
-import NatureDonutChart from '@/components/dashboard/NatureDonutChart';
 import AlertPanel from '@/components/dashboard/AlertPanel';
-import LtvGauge from '@/components/hypotheques/LtvGauge';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+
+// Recharts uses ResizeObserver (browser-only) → must be loaded client-side only
+const VncAreaChart = dynamic(() => import('@/components/dashboard/VncAreaChart'), { ssr: false });
+const ZoneBarChart = dynamic(() => import('@/components/dashboard/ZoneBarChart'), { ssr: false });
+const NatureDonutChart = dynamic(() => import('@/components/dashboard/NatureDonutChart'), { ssr: false });
+const LtvGauge = dynamic(() => import('@/components/hypotheques/LtvGauge'), { ssr: false });
 import { dashboardApi } from '@/lib/api';
 import { formatFCFA, formatPercent } from '@/lib/format';
 import type { DashboardStats } from '@/types';
