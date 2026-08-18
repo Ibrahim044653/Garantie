@@ -29,12 +29,21 @@ export default function ReportingPage() {
 
   useEffect(() => { load(); }, [annee]);
 
-  const handleExport = async () => {
+  const handleExportCsv = async () => {
     try {
       const res = await reportingApi.exportCsv(annee);
       downloadBlob(res.data, `rapport_hypotheques_${annee}.csv`);
     } catch {
-      alert('Erreur lors de l\'export');
+      alert('Erreur lors de l\'export CSV');
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await reportingApi.exportExcel(annee);
+      downloadBlob(res.data, `rapport_hypotheques_${annee}.xlsx`);
+    } catch {
+      alert('Erreur lors de l\'export Excel');
     }
   };
 
@@ -75,13 +84,22 @@ export default function ReportingPage() {
               <RefreshCw className="w-4 h-4 text-slate-500" />
             </button>
           </div>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
-          >
-            <Download className="w-4 h-4" />
-            Exporter CSV
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportCsv}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium"
+            >
+              <Download className="w-4 h-4" />
+              Excel
+            </button>
+          </div>
         </div>
       </div>
 

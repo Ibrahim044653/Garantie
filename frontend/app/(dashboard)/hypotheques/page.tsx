@@ -76,17 +76,28 @@ export default function HypothequesPage() {
     fetchData();
   };
 
-  const handleExport = async () => {
+  const filters = {
+    search: search || undefined,
+    zone: zone || undefined,
+    nature: nature || undefined,
+    statut: statut || undefined,
+  };
+
+  const handleExportCsv = async () => {
     try {
-      const res = await hypothequesApi.exportCsv({
-        search: search || undefined,
-        zone: zone || undefined,
-        nature: nature || undefined,
-        statut: statut || undefined,
-      });
-      downloadBlob(res.data, `hypotheques_${new Date().toISOString().slice(0,10)}.csv`);
+      const res = await hypothequesApi.exportCsv(filters);
+      downloadBlob(res.data, `hypotheques_${new Date().toISOString().slice(0, 10)}.csv`);
     } catch {
       alert('Erreur lors de l\'export CSV');
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await hypothequesApi.exportExcel(filters);
+      downloadBlob(res.data, `hypotheques_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    } catch {
+      alert('Erreur lors de l\'export Excel');
     }
   };
 
@@ -180,11 +191,18 @@ export default function HypothequesPage() {
           {/* Actions */}
           <div className="flex gap-2 ml-auto flex-shrink-0">
             <button
-              onClick={handleExport}
+              onClick={handleExportCsv}
               className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium"
             >
               <Download className="w-4 h-4" />
-              Export CSV
+              CSV
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-sm font-medium"
+            >
+              <Download className="w-4 h-4" />
+              Excel
             </button>
             {canEdit() && (
               <Link

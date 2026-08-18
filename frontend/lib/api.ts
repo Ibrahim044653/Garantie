@@ -59,6 +59,8 @@ export const hypothequesApi = {
     apiClient.get(`/hypotheques/${id}/historique`),
   exportCsv: (params?: Record<string, unknown>) =>
     apiClient.get('/hypotheques/export', { params, responseType: 'blob' }),
+  exportExcel: (params?: Record<string, unknown>) =>
+    apiClient.get('/hypotheques/export-excel', { params, responseType: 'blob' }),
 };
 
 // ---------- Alertes ----------
@@ -79,7 +81,12 @@ export const reportingApi = {
   annuel: (annee: number) =>
     apiClient.get('/reporting/annuel', { params: { annee } }),
   exportCsv: (annee: number) =>
-    apiClient.get('/reporting/export', {
+    apiClient.get('/reporting/annuel/export', {
+      params: { annee },
+      responseType: 'blob',
+    }),
+  exportExcel: (annee: number) =>
+    apiClient.get('/reporting/annuel/export-excel', {
       params: { annee },
       responseType: 'blob',
     }),

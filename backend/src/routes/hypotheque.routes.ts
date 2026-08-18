@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import {
   getAll, getById, create, update, remove,
-  getHistorique, reevaluer, importCSV, downloadDocument, exportCsv,
+  getHistorique, reevaluer, importCSV, downloadDocument, exportCsv, exportExcel,
 } from '../controllers/hypotheque.controller';
 import { authenticate, requireGestionnaire, requireAdmin } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
@@ -38,6 +38,9 @@ hypothequeRouter.get('/', getAll);
 
 // GET export CSV (must be before /:id to avoid conflict)
 hypothequeRouter.get('/export', exportCsv);
+
+// GET export Excel
+hypothequeRouter.get('/export-excel', exportExcel);
 
 // GET by id
 hypothequeRouter.get('/:id', getById);

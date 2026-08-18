@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import fs from 'fs';
+import * as XLSX from 'xlsx';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { calculerDecotes } from '../services/calcul.service';
 import { logger } from '../services/logger';
@@ -430,6 +431,89 @@ export const exportCsv = async (req: AuthRequest, res: Response): Promise<void> 
     res.send('﻿' + csv);
   } catch (err) {
     logger.error('exportCsv error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const exportExcel = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { search, zone, statut } = req.query as Record<string, string>;
+
+    const where: Record<string, unknown> = {};
+    if (search) {
+      where.OR = [
+        { nomClient: { contains: search } },
+        { codeClient: { contains: search } },
+      ];
+    }
+    if (zone) where.zoneGeographique = `ZONE_${zone}`;
+    if (statut) where.statutOccupation = statut;
+
+    const hypotheques = await prisma.hypotheque.findMany({
+      where,
+      orderBy: [{ zoneGeographique: 'asc' }, { nomClient: 'asc' }],
+      include: { alertes: { where: { lu: false } } },
+    });
+
+    const sheetData = hypotheques.map((h) => {
+      const d = calculerDecotes(
+        h.valeurExpertiseInitiale, h.dateExpertise, h.zoneGeographique,
+        h.statutOccupation, h.soldePret, h.natureBien,
+      );
+      let statutCalc = 'OK';
+      if (d.hasShortfall) statutCalc = 'SHORTFALL';
+      else if (d.decoteAnciennete === 100) statutCalc = 'EXPERTISE_EXPIREE';
+      else if (d.loanToValue > 80) statutCalc = 'RISQUE_ELEVE';
+      else if (h.alertes.length > 0) statutCalc = 'ALERTE';
+
+      return {
+        'Code Client': h.codeClient,
+        'Nom Client': h.nomClient,
+        'N° Prêt': h.numeroPret,
+        'Titre Foncier': h.numeroTitreFoncier,
+        'Nature Bien': h.natureBien,
+        'Ville': h.ville,
+        'Zone': h.zoneGeographique,
+        'Statut Occupation': h.statutOccupation,
+        'Valeur Expertise (FCFA)': h.valeurExpertiseInitiale,
+        'Date Expertise': h.dateExpertise.toLocaleDateString('fr-FR'),
+        'Décote Zone (%)': d.decoteZone,
+        'Décote Ancienneté (%)': d.decoteAnciennete,
+        'Décote Occupation (%)': d.decoteOccupation,
+        'Décote Totale (%)': d.decoteTotale,
+        'VNC (FCFA)': Math.round(d.valeurNetteCouverture),
+        'Solde Prêt (FCFA)': h.soldePret,
+        'LTV (%)': parseFloat(d.loanToValue.toFixed(2)),
+        'Montant Inscription (FCFA)': h.montantInscription,
+        'Rang': h.rangHypotheque,
+        'Date Péremption': h.datePeremptionInscription.toLocaleDateString('fr-FR'),
+        'Statut': statutCalc,
+        'Alertes': [...new Set(h.alertes.map((a) => a.type))].join(', '),
+      };
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(sheetData);
+
+    // Column widths
+    ws['!cols'] = [
+      { wch: 14 }, { wch: 22 }, { wch: 20 }, { wch: 18 }, { wch: 16 },
+      { wch: 14 }, { wch: 8 }, { wch: 20 }, { wch: 22 }, { wch: 14 },
+      { wch: 14 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 16 },
+      { wch: 18 }, { wch: 8 }, { wch: 22 }, { wch: 6 }, { wch: 16 },
+      { wch: 16 }, { wch: 30 },
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Hypothèques');
+
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const filename = `hypotheques-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
+  } catch (err) {
+    logger.error('exportExcel error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
