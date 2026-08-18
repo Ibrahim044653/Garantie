@@ -13,6 +13,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/reporting': 'Reporting Annuel',
   '/alertes': 'Alertes',
   '/admin/users': 'Gestion des Utilisateurs',
+  '/profil': 'Mon Profil',
 };
 
 

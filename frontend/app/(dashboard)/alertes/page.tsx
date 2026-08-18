@@ -81,6 +81,7 @@ export default function AlertesPage() {
               <option value="EXPERTISE_OBSOLETE">Expertise Obsolète</option>
               <option value="PEREMPTION_INSCRIPTION">Péremption Inscription</option>
               <option value="LTV_ELEVEE">LTV Élevée</option>
+              <option value="EXPERTISE_RENOUVELLEMENT">Renouvellement expertise</option>
             </select>
             <select
               value={statutFilter}

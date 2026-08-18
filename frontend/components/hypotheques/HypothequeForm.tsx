@@ -21,7 +21,7 @@ const schema = z.object({
   quartier: z.string().min(1, 'Quartier requis'),
   lot: z.string().optional(),
   ilot: z.string().optional(),
-  zoneGeographique: z.enum(['A', 'B', 'C']),
+  zoneGeographique: z.enum(['A', 'B', 'C', 'ZONE_INDUSTRIELLE']),
   statutOccupation: z.enum(['OCCUPE_PROPRIETAIRE', 'LOUE', 'VACANT']),
   valeurExpertiseInitiale: z.coerce.number().positive('Valeur doit être positive'),
   dateExpertise: z.string().min(1, 'Date expertise requise'),
@@ -29,6 +29,7 @@ const schema = z.object({
   rangHypotheque: z.coerce.number().int().min(1).max(2) as z.ZodType<1 | 2>,
   datePeremptionInscription: z.string().min(1, 'Date péremption requise'),
   soldePret: z.coerce.number().positive('Solde prêt requis'),
+  dateEcheancePret: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,13 +41,16 @@ interface Props {
 const STEPS = [
   { id: 1, title: 'Identification', fields: ['codeClient','nomClient','numeroPret','numeroTitreFoncier','natureBien'] },
   { id: 2, title: 'Localisation', fields: ['ville','quartier','lot','ilot','zoneGeographique','statutOccupation'] },
-  { id: 3, title: 'Valeurs', fields: ['valeurExpertiseInitiale','dateExpertise','montantInscription','rangHypotheque','datePeremptionInscription','soldePret'] },
+  { id: 3, title: 'Valeurs', fields: ['valeurExpertiseInitiale','dateExpertise','montantInscription','rangHypotheque','datePeremptionInscription','soldePret','dateEcheancePret'] },
 ];
 
 function calcPreview(data: Partial<FormData>) {
   if (!data.valeurExpertiseInitiale || !data.zoneGeographique || !data.dateExpertise || !data.statutOccupation) return null;
 
-  const decoteZone = data.zoneGeographique === 'A' ? 0 : data.zoneGeographique === 'B' ? 20 : 40;
+  const decoteZone = data.zoneGeographique === 'A' ? 0
+    : data.zoneGeographique === 'B' ? 20
+    : data.zoneGeographique === 'ZONE_INDUSTRIELLE' ? 40
+    : 40; // Zone C et ZONE_INDUSTRIELLE : 40%
 
   const now = new Date();
   const exp = new Date(data.dateExpertise);
@@ -88,6 +92,7 @@ export default function HypothequeForm({ initial }: Props) {
         rangHypotheque: initial.rangHypotheque,
         datePeremptionInscription: initial.datePeremptionInscription?.slice(0, 10),
         soldePret: initial.soldePret,
+        dateEcheancePret: initial.dateEcheancePret?.slice(0, 10),
       }
     : { rangHypotheque: 1, zoneGeographique: 'A', natureBien: 'VILLA', statutOccupation: 'OCCUPE_PROPRIETAIRE' };
 
@@ -226,6 +231,7 @@ export default function HypothequeForm({ initial }: Props) {
                   <option value="A">Zone A (principale)</option>
                   <option value="B">Zone B (secondaire)</option>
                   <option value="C">Zone C (rurale)</option>
+                  <option value="ZONE_INDUSTRIELLE">Zone Industrielle (Spécifique)</option>
                 </select>
               </Field>
               <Field label="Statut Occupation *" error={errors.statutOccupation?.message}>
@@ -280,6 +286,9 @@ export default function HypothequeForm({ initial }: Props) {
                     className="form-input"
                     placeholder="30000000"
                   />
+                </Field>
+                <Field label="Date d'échéance du prêt" error={errors.dateEcheancePret?.message}>
+                  <input {...register('dateEcheancePret')} type="date" className="form-input" />
                 </Field>
               </div>
             </div>

@@ -46,6 +46,15 @@ export const authApi = {
   me: () => apiClient.get('/auth/me'),
 };
 
+// ---------- MFA ----------
+export const mfaApi = {
+  setup: () => apiClient.get('/auth/mfa/setup'),
+  confirm: (token: string) => apiClient.post('/auth/mfa/confirm', { token }),
+  validate: (userId: number, token: string) =>
+    apiClient.post('/auth/mfa/validate', { userId, token }),
+  disable: () => apiClient.delete('/auth/mfa/disable'),
+};
+
 // ---------- Hypothèques ----------
 export const hypothequesApi = {
   list: (params?: Record<string, unknown>) =>
@@ -57,6 +66,8 @@ export const hypothequesApi = {
   delete: (id: number | string) => apiClient.delete(`/hypotheques/${id}`),
   historique: (id: number | string) =>
     apiClient.get(`/hypotheques/${id}/historique`),
+  revaloriser: (id: number | string, data: { indiceRevalorisation: number; motif: string }) =>
+    apiClient.post(`/hypotheques/${id}/revaloriser`, data),
   exportCsv: (params?: Record<string, unknown>) =>
     apiClient.get('/hypotheques/export', { params, responseType: 'blob' }),
   exportExcel: (params?: Record<string, unknown>) =>

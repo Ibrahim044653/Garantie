@@ -23,7 +23,7 @@ interface UserForm {
   role: UserRole;
 }
 
-const ROLE_OPTIONS: UserRole[] = ['ADMIN', 'RESPONSABLE_RISQUES', 'CHARGE_CLIENTELE'];
+const ROLE_OPTIONS: UserRole[] = ['ADMIN', 'RESPONSABLE_RISQUES', 'CHARGE_CLIENTELE', 'ENGAGEMENTS', 'AUDIT_INTERNE'];
 
 export default function AdminUsersPage() {
   const { hasRole, isLoading } = useAuth();
@@ -118,6 +118,8 @@ export default function AdminUsersPage() {
     ADMIN: 'badge-danger',
     RESPONSABLE_RISQUES: 'badge-warning',
     CHARGE_CLIENTELE: 'badge-info',
+    ENGAGEMENTS: 'badge-success',
+    AUDIT_INTERNE: 'badge-muted',
   };
 
   return (

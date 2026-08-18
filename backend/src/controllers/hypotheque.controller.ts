@@ -124,6 +124,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
       natureBien, ville, quartier, lot, ilot, zoneGeographique,
       statutOccupation, valeurExpertiseInitiale, dateExpertise,
       montantInscription, rangHypotheque, datePeremptionInscription, soldePret,
+      dateEcheancePret,
     } = req.body;
 
     const pjExpertisePath = req.file ? req.file.filename : undefined;
@@ -147,6 +148,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
         rangHypotheque: parseInt(rangHypotheque) || 1,
         datePeremptionInscription: new Date(datePeremptionInscription),
         soldePret: parseFloat(soldePret),
+        dateEcheancePret: dateEcheancePret ? new Date(dateEcheancePret) : null,
         pjExpertisePath: pjExpertisePath || null,
       },
     });
@@ -178,9 +180,16 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
       natureBien, ville, quartier, lot, ilot, zoneGeographique,
       statutOccupation, valeurExpertiseInitiale, dateExpertise,
       montantInscription, rangHypotheque, datePeremptionInscription, soldePret,
+      dateEcheancePret,
     } = req.body;
 
     const pjExpertisePath = req.file ? req.file.filename : existing.pjExpertisePath;
+
+    const newValeur = valeurExpertiseInitiale != null ? parseFloat(valeurExpertiseInitiale) : existing.valeurExpertiseInitiale;
+    const newDate = dateExpertise ? new Date(dateExpertise) : existing.dateExpertise;
+    const newZone = zoneGeographique ?? existing.zoneGeographique;
+    const newStatut = statutOccupation ?? existing.statutOccupation;
+    const newSolde = soldePret != null ? parseFloat(soldePret) : existing.soldePret;
 
     const h = await prisma.hypotheque.update({
       where: { id },
@@ -194,21 +203,42 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
         quartier: quartier !== undefined ? quartier || null : existing.quartier,
         lot: lot !== undefined ? lot || null : existing.lot,
         ilot: ilot !== undefined ? ilot || null : existing.ilot,
-        zoneGeographique: zoneGeographique ?? existing.zoneGeographique,
-        statutOccupation: statutOccupation ?? existing.statutOccupation,
-        valeurExpertiseInitiale: valeurExpertiseInitiale != null ? parseFloat(valeurExpertiseInitiale) : existing.valeurExpertiseInitiale,
-        dateExpertise: dateExpertise ? new Date(dateExpertise) : existing.dateExpertise,
+        zoneGeographique: newZone,
+        statutOccupation: newStatut,
+        valeurExpertiseInitiale: newValeur,
+        dateExpertise: newDate,
         montantInscription: montantInscription != null ? parseFloat(montantInscription) : existing.montantInscription,
         rangHypotheque: rangHypotheque != null ? parseInt(rangHypotheque) : existing.rangHypotheque,
         datePeremptionInscription: datePeremptionInscription ? new Date(datePeremptionInscription) : existing.datePeremptionInscription,
-        soldePret: soldePret != null ? parseFloat(soldePret) : existing.soldePret,
+        soldePret: newSolde,
+        dateEcheancePret: dateEcheancePret ? new Date(dateEcheancePret) : (existing as Record<string, unknown>).dateEcheancePret as Date | null ?? null,
         pjExpertisePath,
+      },
+    });
+
+    // Audit trail : enregistrer toute modification dans l'historique
+    const decotesApres = calculerDecotes(newValeur, newDate, newZone, newStatut, newSolde, h.natureBien);
+    await prisma.historiqueValeur.create({
+      data: {
+        hypothequeId: id,
+        valeurExpertise: newValeur,
+        dateExpertise: newDate,
+        zoneGeographique: newZone,
+        statutOccupation: newStatut,
+        decoteZone: decotesApres.decoteZone,
+        decoteAnciennete: decotesApres.decoteAnciennete,
+        decoteOccupation: decotesApres.decoteOccupation,
+        decoteTotale: decotesApres.decoteTotale,
+        valeurNetteCouverture: decotesApres.valeurNetteCouverture,
+        loanToValue: decotesApres.loanToValue,
+        modifiePar: `${req.user!.prenom} ${req.user!.nom}`,
+        motif: 'Modification système',
       },
     });
 
     logger.info(`Hypothèque updated: ${h.numeroPret} by ${req.user!.email}`);
     res.json(enrichHypotheque(h as unknown as Record<string, unknown>));
-    void _nc; // suppress unused warning
+    void _nc;
   } catch (err) {
     logger.error('update error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -311,6 +341,63 @@ export const reevaluer = async (req: AuthRequest, res: Response): Promise<void> 
     });
   } catch (err) {
     logger.error('reevaluer error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const revaloriser = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    const { indiceRevalorisation, motif } = req.body;
+
+    if (indiceRevalorisation == null || isNaN(parseFloat(indiceRevalorisation))) {
+      res.status(400).json({ error: 'indiceRevalorisation (%) requis' });
+      return;
+    }
+
+    const h = await prisma.hypotheque.findUnique({ where: { id } });
+    if (!h) {
+      res.status(404).json({ error: 'Hypothèque not found' });
+      return;
+    }
+
+    const indice = parseFloat(indiceRevalorisation);
+    const nouvelleValeur = h.valeurExpertiseInitiale * (1 + indice / 100);
+    const decotes = calculerDecotes(nouvelleValeur, h.dateExpertise, h.zoneGeographique, h.statutOccupation, h.soldePret, h.natureBien);
+
+    const historique = await prisma.historiqueValeur.create({
+      data: {
+        hypothequeId: id,
+        valeurExpertise: nouvelleValeur,
+        dateExpertise: h.dateExpertise,
+        zoneGeographique: h.zoneGeographique,
+        statutOccupation: h.statutOccupation,
+        decoteZone: decotes.decoteZone,
+        decoteAnciennete: decotes.decoteAnciennete,
+        decoteOccupation: decotes.decoteOccupation,
+        decoteTotale: decotes.decoteTotale,
+        valeurNetteCouverture: decotes.valeurNetteCouverture,
+        loanToValue: decotes.loanToValue,
+        modifiePar: `${req.user!.prenom} ${req.user!.nom}`,
+        motif: motif || `Revalorisation par indice +${indice}%`,
+      },
+    });
+
+    const updated = await prisma.hypotheque.update({
+      where: { id },
+      data: { valeurExpertiseInitiale: nouvelleValeur },
+    });
+
+    logger.info(`Hypothèque revaluated by index: ${h.numeroPret} +${indice}% by ${req.user!.email}`);
+    res.json({
+      hypotheque: enrichHypotheque(updated as unknown as Record<string, unknown>),
+      indiceApplique: indice,
+      ancienneValeur: h.valeurExpertiseInitiale,
+      nouvelleValeur,
+      historique,
+    });
+  } catch (err) {
+    logger.error('revaloriser error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

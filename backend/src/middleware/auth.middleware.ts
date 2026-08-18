@@ -82,5 +82,20 @@ export const requireRole = (...roles: string[]) => {
   };
 };
 
+// Roles hiérarchie:
+// ADMIN                  → accès total
+// GESTIONNAIRE_GARANTIES → CRUD hypothèques, réévaluation, exports
+// RESPONSABLE_RISQUES    → lecture seule
+// ENGAGEMENTS            → lecture hypothèques (suivi encours prêts)
+// AUDIT_INTERNE          → lecture complète (audit trail, historique, reporting)
+
 export const requireGestionnaire = requireRole('ADMIN', 'GESTIONNAIRE_GARANTIES');
 export const requireAdmin = requireRole('ADMIN');
+export const requireLecteur = requireRole(
+  'ADMIN',
+  'GESTIONNAIRE_GARANTIES',
+  'RESPONSABLE_RISQUES',
+  'ENGAGEMENTS',
+  'AUDIT_INTERNE',
+);
+export const requireAudit = requireRole('ADMIN', 'AUDIT_INTERNE');

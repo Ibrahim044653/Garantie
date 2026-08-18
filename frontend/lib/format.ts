@@ -95,6 +95,7 @@ export const ZONE_LABELS: Record<ZoneGeographique, string> = {
   A: 'Zone A',
   B: 'Zone B',
   C: 'Zone C',
+  ZONE_INDUSTRIELLE: 'Zone Industrielle (Spécifique)',
 };
 
 export const ALERTE_TYPE_LABELS: Record<AlerteType, string> = {
@@ -102,6 +103,7 @@ export const ALERTE_TYPE_LABELS: Record<AlerteType, string> = {
   EXPERTISE_OBSOLETE: 'Expertise Obsolète',
   PEREMPTION_INSCRIPTION: 'Péremption Inscription',
   LTV_ELEVEE: 'LTV Élevée',
+  EXPERTISE_RENOUVELLEMENT: 'Renouvellement expertise',
 };
 
 export const SEVERITE_LABELS: Record<AlerteSeverite, string> = {
@@ -115,6 +117,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: 'Administrateur',
   RESPONSABLE_RISQUES: 'Responsable Risques',
   CHARGE_CLIENTELE: 'Chargé de Clientèle',
+  ENGAGEMENTS: 'Engagements',
+  AUDIT_INTERNE: 'Audit Interne',
 };
 
 export const RANG_LABELS: Record<1 | 2, string> = {

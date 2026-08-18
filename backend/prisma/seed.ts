@@ -47,7 +47,33 @@ async function main() {
     },
   });
 
-  console.log('Users created');
+  const engagementsPassword = await bcrypt.hash('Engag@1234', 10);
+  await prisma.user.upsert({
+    where: { email: 'engagements@banque.sn' },
+    update: {},
+    create: {
+      email: 'engagements@banque.sn',
+      password: engagementsPassword,
+      nom: 'Konaté',
+      prenom: 'Seydou',
+      role: 'ENGAGEMENTS',
+    },
+  });
+
+  const auditPassword = await bcrypt.hash('Audit@1234', 10);
+  await prisma.user.upsert({
+    where: { email: 'audit@banque.sn' },
+    update: {},
+    create: {
+      email: 'audit@banque.sn',
+      password: auditPassword,
+      nom: 'Traoré',
+      prenom: 'Aminata',
+      role: 'AUDIT_INTERNE',
+    },
+  });
+
+  console.log('Users created (5 comptes : admin, gestionnaire, risques, engagements, audit)');
 
   // Helper to add months to a date
   const addMonths = (date: Date, months: number): Date => {

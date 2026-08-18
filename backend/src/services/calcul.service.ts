@@ -15,15 +15,17 @@ export interface DecoteResult {
 
 /**
  * Decote Zone Géographique
- * ZONE_A (Urbaine Prime): 20%
- * ZONE_B (Standard):      30%
- * ZONE_C (Rurale):        45%
+ * ZONE_A (Urbaine Prime):      20%
+ * ZONE_B (Standard):           30%
+ * ZONE_C (Rurale):             45%
+ * ZONE_INDUSTRIELLE (Spéc.):   40%
  */
 export function getDecoteZone(zone: string): number {
   switch (zone) {
     case 'ZONE_A': return 20;
     case 'ZONE_B': return 30;
     case 'ZONE_C': return 45;
+    case 'ZONE_INDUSTRIELLE': return 40;
     default: return 30;
   }
 }

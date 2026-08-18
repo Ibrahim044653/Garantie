@@ -40,7 +40,7 @@ export async function generateAlerts(): Promise<void> {
       h.natureBien,
     );
 
-    // 1. Expertise expirée (> 5 ans)
+    // 1. Expertise expirée (> 5 ans) — valeur nulle CB
     if (ageYears > 5) {
       alerts.push({
         type: 'EXPERTISE_EXPIREE',
@@ -48,12 +48,22 @@ export async function generateAlerts(): Promise<void> {
         dateEcheance: h.dateExpertise,
       });
     }
-    // 2. Expertise bientôt expirée (3 à 5 ans)
+    // 2. Expertise à réévaluer (3 à 5 ans — décote ancienneté 10%)
     else if (ageYears > 3) {
       alerts.push({
         type: 'EXPERTISE_BIENTOT_EXPIREE',
-        message: `L'expertise du bien de ${h.nomClient} (${h.numeroPret}) a plus de 3 ans. Une réévaluation est recommandée.`,
+        message: `L'expertise du bien de ${h.nomClient} (${h.numeroPret}) a plus de 3 ans (décote ancienneté +10%). Réévaluation urgente requise selon Circulaire 04-2017.`,
         dateEcheance: h.dateExpertise,
+      });
+    }
+    // 3. Alerte préventive bisannuelle : 3 mois avant la limite de 2 ans (TDR SIB)
+    else if (ageYears >= (24 - 3) / 12) {
+      const dateRenewal = new Date(h.dateExpertise);
+      dateRenewal.setFullYear(dateRenewal.getFullYear() + 2);
+      alerts.push({
+        type: 'EXPERTISE_RENOUVELLEMENT',
+        message: `L'expertise du bien de ${h.nomClient} (${h.numeroPret}) atteindra 2 ans le ${dateRenewal.toLocaleDateString('fr-FR')}. Planifier la réévaluation bisannuelle (Circulaire 04-2017, Art. 3).`,
+        dateEcheance: dateRenewal,
       });
     }
 

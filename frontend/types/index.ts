@@ -1,10 +1,16 @@
-export type UserRole = 'ADMIN' | 'RESPONSABLE_RISQUES' | 'CHARGE_CLIENTELE';
+export type UserRole =
+  | 'ADMIN'
+  | 'RESPONSABLE_RISQUES'
+  | 'CHARGE_CLIENTELE'
+  | 'ENGAGEMENTS'
+  | 'AUDIT_INTERNE';
 
 export interface User {
   id: number;
   nom: string;
   email: string;
   role: UserRole;
+  mfaEnabled?: boolean;
 }
 
 export type NatureBien =
@@ -14,7 +20,7 @@ export type NatureBien =
   | 'LOCAL_COMMERCIAL'
   | 'IMMEUBLE';
 
-export type ZoneGeographique = 'A' | 'B' | 'C';
+export type ZoneGeographique = 'A' | 'B' | 'C' | 'ZONE_INDUSTRIELLE';
 
 export type StatutOccupation =
   | 'OCCUPE_PROPRIETAIRE'
@@ -45,6 +51,7 @@ export interface Hypotheque {
   rangHypotheque: 1 | 2;
   datePeremptionInscription: string;
   soldePret: number;
+  dateEcheancePret?: string;
   vnc: number;
   ltv: number;
   decoteZone: number;
@@ -61,7 +68,8 @@ export type AlerteType =
   | 'SHORTFALL'
   | 'EXPERTISE_OBSOLETE'
   | 'PEREMPTION_INSCRIPTION'
-  | 'LTV_ELEVEE';
+  | 'LTV_ELEVEE'
+  | 'EXPERTISE_RENOUVELLEMENT';
 
 export type AlerteSeverite = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type AlerteStatut = 'NON_LU' | 'LU';
@@ -125,6 +133,7 @@ export interface HypothequeFormData {
   rangHypotheque: 1 | 2;
   datePeremptionInscription: string;
   soldePret: number;
+  dateEcheancePret?: string;
 }
 
 export interface HypothequeFilters {

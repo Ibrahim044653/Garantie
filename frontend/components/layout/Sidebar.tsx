@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronRight,
   Landmark,
+  UserCircle,
 } from 'lucide-react';
 
 const navItems = [
@@ -139,7 +140,15 @@ export default function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="px-3 py-4 border-t border-slate-700">
+      <div className="px-3 py-4 border-t border-slate-700 space-y-1">
+        <Link
+          href="/profil"
+          className={`sidebar-link ${pathname === '/profil' ? 'active' : ''}`}
+        >
+          <UserCircle className="w-4 h-4 flex-shrink-0" />
+          <span className="flex-1">Mon Profil</span>
+          {pathname === '/profil' && <ChevronRight className="w-3 h-3" />}
+        </Link>
         <button
           onClick={logout}
           className="sidebar-link w-full hover:text-red-400"

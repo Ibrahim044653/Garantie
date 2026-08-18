@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Clock,
   X,
+  TrendingUp,
 } from 'lucide-react';
 import { hypothequesApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,6 +56,13 @@ export default function HypothequePage({
   const [historique, setHistorique] = useState<HistoriqueEntry[]>([]);
   const [histLoading, setHistLoading] = useState(false);
 
+  // Revalorisation par indice
+  const [showRevalModal, setShowRevalModal] = useState(false);
+  const [revalIndice, setRevalIndice] = useState('');
+  const [revalMotif, setRevalMotif] = useState('');
+  const [revalSaving, setRevalSaving] = useState(false);
+  const [revalError, setRevalError] = useState('');
+
   useEffect(() => {
     hypothequesApi
       .get(id)
@@ -62,6 +70,35 @@ export default function HypothequePage({
       .catch(() => setHyp(null))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleRevaloriser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRevalError('');
+    const indice = parseFloat(revalIndice);
+    if (isNaN(indice) || indice <= 0) {
+      setRevalError("L'indice doit être un nombre positif.");
+      return;
+    }
+    if (!revalMotif.trim()) {
+      setRevalError('Le motif est requis.');
+      return;
+    }
+    setRevalSaving(true);
+    try {
+      const res = await hypothequesApi.revaloriser(id, { indiceRevalorisation: indice, motif: revalMotif.trim() });
+      setHyp(res.data);
+      setShowRevalModal(false);
+      setRevalIndice('');
+      setRevalMotif('');
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+          ?? 'Erreur lors de la revalorisation';
+      setRevalError(msg);
+    } finally {
+      setRevalSaving(false);
+    }
+  };
 
   const openHistorique = async () => {
     setShowHistorique(true);
@@ -143,13 +180,22 @@ export default function HypothequePage({
             Historique
           </button>
           {canEdit() && (
-            <Link
-              href={`/hypotheques/${id}/edit`}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-700 text-white rounded-lg text-sm hover:bg-blue-800"
-            >
-              <Edit className="w-4 h-4" />
-              Modifier
-            </Link>
+            <>
+              <button
+                onClick={() => { setShowRevalModal(true); setRevalError(''); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-violet-300 text-violet-700 rounded-lg text-sm hover:bg-violet-50"
+              >
+                <TrendingUp className="w-4 h-4" />
+                Revaloriser
+              </button>
+              <Link
+                href={`/hypotheques/${id}/edit`}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-700 text-white rounded-lg text-sm hover:bg-blue-800"
+              >
+                <Edit className="w-4 h-4" />
+                Modifier
+              </Link>
+            </>
           )}
         </div>
       </div>
@@ -330,6 +376,90 @@ export default function HypothequePage({
           </div>
         </div>
       </div>
+
+      {/* Revalorisation par indice Modal */}
+      {showRevalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200">
+              <div>
+                <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-violet-600" />
+                  Revalorisation par indice
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Applique un indice de revalorisation à la valeur d&apos;expertise
+                </p>
+              </div>
+              <button
+                onClick={() => setShowRevalModal(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-100"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            <form onSubmit={handleRevaloriser} className="p-5 space-y-4">
+              {revalError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-600">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  {revalError}
+                </div>
+              )}
+
+              <div>
+                <label className="form-label">Indice de revalorisation (%) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={revalIndice}
+                  onChange={(e) => setRevalIndice(e.target.value)}
+                  className="form-input"
+                  placeholder="ex: 5.5"
+                  disabled={revalSaving}
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Pourcentage d&apos;augmentation appliqué à la valeur expertise actuelle
+                </p>
+              </div>
+
+              <div>
+                <label className="form-label">Motif *</label>
+                <textarea
+                  value={revalMotif}
+                  onChange={(e) => setRevalMotif(e.target.value)}
+                  className="form-input resize-none"
+                  rows={3}
+                  placeholder="Ex: Revalorisation annuelle indice BCEAO 2024"
+                  disabled={revalSaving}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowRevalModal(false)}
+                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-sm hover:bg-slate-100"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={revalSaving}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 disabled:bg-violet-400"
+                >
+                  {revalSaving ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <TrendingUp className="w-4 h-4" />
+                  )}
+                  Appliquer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Historique Modal/Drawer */}
       {showHistorique && (

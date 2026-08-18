@@ -26,6 +26,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // MFA : si activé, retourner un challenge au lieu du token
+    if (user.mfaEnabled) {
+      logger.info(`MFA challenge required for: ${user.email}`);
+      res.json({
+        mfaRequired: true,
+        userId: user.id,
+        message: 'Code TOTP requis. Appelez POST /api/auth/mfa/validate avec { userId, token }.',
+      });
+      return;
+    }
+
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       JWT_SECRET,
@@ -49,8 +60,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         nom: user.nom,
         prenom: user.prenom,
         role: user.role,
+        mfaEnabled: user.mfaEnabled,
       },
-      token, // also return token for non-cookie clients
+      token,
     });
   } catch (err) {
     logger.error('Login error:', err);

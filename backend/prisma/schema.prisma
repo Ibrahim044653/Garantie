@@ -8,14 +8,16 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  nom       String
-  prenom    String
-  role      String   @default("GESTIONNAIRE_GARANTIES")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  password    String
+  nom         String
+  prenom      String
+  role        String   @default("GESTIONNAIRE_GARANTIES")
+  mfaSecret   String?
+  mfaEnabled  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Hypotheque {
@@ -37,6 +39,7 @@ model Hypotheque {
   rangHypotheque           Int      @default(1)
   datePeremptionInscription DateTime
   soldePret                Float
+  dateEcheancePret         DateTime?
   pjExpertisePath          String?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt

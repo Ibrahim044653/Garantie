@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import {
   getAll, getById, create, update, remove,
-  getHistorique, reevaluer, importCSV, downloadDocument, exportCsv, exportExcel,
+  getHistorique, reevaluer, revaloriser, importCSV, downloadDocument, exportCsv, exportExcel,
 } from '../controllers/hypotheque.controller';
 import { authenticate, requireGestionnaire, requireAdmin } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
@@ -14,7 +14,7 @@ export const hypothequeRouter = Router();
 hypothequeRouter.use(authenticate);
 
 const NATURES = ['TERRAIN_NU', 'VILLA', 'IMMEUBLE_RAPPORT', 'USINE', 'BUREAU'];
-const ZONES = ['ZONE_A', 'ZONE_B', 'ZONE_C'];
+const ZONES = ['ZONE_A', 'ZONE_B', 'ZONE_C', 'ZONE_INDUSTRIELLE'];
 const STATUTS_OCC = ['LIBRE', 'OCCUPE_PROPRIETAIRE', 'LOUE_AVEC_BAIL'];
 
 const hypothequeValidation = [
@@ -83,6 +83,18 @@ hypothequeRouter.post(
   ],
   validate,
   reevaluer,
+);
+
+// POST revaloriser par indice (2ème et 3ème rang — TDR SIB)
+hypothequeRouter.post(
+  '/:id/revaloriser',
+  requireGestionnaire,
+  [
+    body('indiceRevalorisation').isFloat().withMessage('indiceRevalorisation (%) requis'),
+    body('motif').optional().isString(),
+  ],
+  validate,
+  revaloriser,
 );
 
 // POST import CSV
