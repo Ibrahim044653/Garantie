@@ -1,0 +1,153 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  LayoutDashboard,
+  Building2,
+  BarChart3,
+  Bell,
+  Users,
+  LogOut,
+  ChevronRight,
+  Landmark,
+} from 'lucide-react';
+
+const navItems = [
+  {
+    href: '/dashboard',
+    label: 'Tableau de bord',
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
+    href: '/hypotheques',
+    label: 'Hypothèques',
+    icon: Building2,
+    exact: false,
+  },
+  {
+    href: '/reporting',
+    label: 'Reporting',
+    icon: BarChart3,
+    exact: false,
+  },
+  {
+    href: '/alertes',
+    label: 'Alertes',
+    icon: Bell,
+    exact: false,
+  },
+];
+
+const adminItems = [
+  {
+    href: '/admin/users',
+    label: 'Utilisateurs',
+    icon: Users,
+    exact: false,
+  },
+];
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  const { user, logout, hasRole } = useAuth();
+
+  function isActive(href: string, exact: boolean) {
+    if (exact) return pathname === href;
+    return pathname.startsWith(href);
+  }
+
+  return (
+    <aside
+      className="flex flex-col w-64 min-h-screen"
+      style={{ background: 'var(--sidebar-bg)' }}
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-700">
+        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-600">
+          <Landmark className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <p className="text-white text-sm font-bold leading-tight">SGH</p>
+          <p className="text-slate-400 text-xs leading-tight">Hypothèques</p>
+        </div>
+      </div>
+
+      {/* User info */}
+      <div className="px-4 py-4 border-b border-slate-700">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+            {user?.nom?.charAt(0).toUpperCase() ?? '?'}
+          </div>
+          <div className="min-w-0">
+            <p className="text-white text-xs font-medium truncate">
+              {user?.nom ?? '—'}
+            </p>
+            <p className="text-slate-400 text-xs truncate capitalize">
+              {user?.role?.toLowerCase().replace(/_/g, ' ') ?? ''}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1">
+        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider px-3 mb-2">
+          Menu principal
+        </p>
+        {navItems.map((item) => {
+          const active = isActive(item.href, item.exact);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`sidebar-link ${active ? 'active' : ''}`}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1">{item.label}</span>
+              {active && <ChevronRight className="w-3 h-3" />}
+            </Link>
+          );
+        })}
+
+        {hasRole('ADMIN') && (
+          <>
+            <div className="my-3 border-t border-slate-700" />
+            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider px-3 mb-2">
+              Administration
+            </p>
+            {adminItems.map((item) => {
+              const active = isActive(item.href, item.exact);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`sidebar-link ${active ? 'active' : ''}`}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="flex-1">{item.label}</span>
+                  {active && <ChevronRight className="w-3 h-3" />}
+                </Link>
+              );
+            })}
+          </>
+        )}
+      </nav>
+
+      {/* Logout */}
+      <div className="px-3 py-4 border-t border-slate-700">
+        <button
+          onClick={logout}
+          className="sidebar-link w-full hover:text-red-400"
+        >
+          <LogOut className="w-4 h-4 flex-shrink-0" />
+          <span>Déconnexion</span>
+        </button>
+      </div>
+    </aside>
+  );
+}
