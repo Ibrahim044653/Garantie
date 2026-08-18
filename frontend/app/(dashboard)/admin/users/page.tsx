@@ -23,7 +23,7 @@ interface UserForm {
   role: UserRole;
 }
 
-const ROLE_OPTIONS: UserRole[] = ['ADMIN', 'RESPONSABLE_RISQUES', 'CHARGE_CLIENTELE', 'ENGAGEMENTS', 'AUDIT_INTERNE'];
+const ROLE_OPTIONS: UserRole[] = ['ADMIN', 'GESTIONNAIRE_GARANTIES', 'RESPONSABLE_RISQUES', 'ENGAGEMENTS', 'AUDIT_INTERNE'];
 
 export default function AdminUsersPage() {
   const { hasRole, isLoading } = useAuth();
@@ -33,7 +33,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
-  const [form, setForm] = useState<UserForm>({ nom: '', email: '', password: '', role: 'CHARGE_CLIENTELE' });
+  const [form, setForm] = useState<UserForm>({ nom: '', email: '', password: '', role: 'GESTIONNAIRE_GARANTIES' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -59,7 +59,7 @@ export default function AdminUsersPage() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ nom: '', email: '', password: '', role: 'CHARGE_CLIENTELE' });
+    setForm({ nom: '', email: '', password: '', role: 'GESTIONNAIRE_GARANTIES' });
     setError('');
     setShowModal(true);
   };
@@ -116,8 +116,8 @@ export default function AdminUsersPage() {
 
   const roleColor: Record<UserRole, string> = {
     ADMIN: 'badge-danger',
+    GESTIONNAIRE_GARANTIES: 'badge-info',
     RESPONSABLE_RISQUES: 'badge-warning',
-    CHARGE_CLIENTELE: 'badge-info',
     ENGAGEMENTS: 'badge-success',
     AUDIT_INTERNE: 'badge-muted',
   };

@@ -115,8 +115,8 @@ export const SEVERITE_LABELS: Record<AlerteSeverite, string> = {
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: 'Administrateur',
+  GESTIONNAIRE_GARANTIES: 'Gestionnaire Garanties',
   RESPONSABLE_RISQUES: 'Responsable Risques',
-  CHARGE_CLIENTELE: 'Chargé de Clientèle',
   ENGAGEMENTS: 'Engagements',
   AUDIT_INTERNE: 'Audit Interne',
 };

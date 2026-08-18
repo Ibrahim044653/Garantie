@@ -1,7 +1,7 @@
 export type UserRole =
   | 'ADMIN'
+  | 'GESTIONNAIRE_GARANTIES'
   | 'RESPONSABLE_RISQUES'
-  | 'CHARGE_CLIENTELE'
   | 'ENGAGEMENTS'
   | 'AUDIT_INTERNE';
 
