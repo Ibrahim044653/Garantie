@@ -4,78 +4,105 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./hypotheque.db"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  email       String   @unique
-  password    String
-  nom         String
-  prenom      String
-  role        String   @default("GESTIONNAIRE_GARANTIES")
-  mfaSecret   String?
-  mfaEnabled  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String
+  nom        String
+  prenom     String
+  role       String   @default("GESTIONNAIRE_GARANTIES")
+  mfaSecret  String?
+  mfaEnabled Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([role])
 }
 
 model Hypotheque {
-  id                       Int      @id @default(autoincrement())
-  codeClient               String
-  nomClient                String
-  numeroPret               String   @unique
-  numeroTitreFoncier       String
-  natureBien               String
-  ville                    String
-  quartier                 String?
-  lot                      String?
-  ilot                     String?
-  zoneGeographique         String
-  statutOccupation         String
-  valeurExpertiseInitiale  Float
-  dateExpertise            DateTime
-  montantInscription       Float
-  rangHypotheque           Int      @default(1)
+  id                        Int       @id @default(autoincrement())
+  codeClient                String
+  nomClient                 String
+  numeroPret                String    @unique
+  numeroTitreFoncier        String
+  natureBien                String
+  ville                     String
+  quartier                  String?
+  lot                       String?
+  ilot                      String?
+  zoneGeographique          String
+  statutOccupation          String
+  valeurExpertiseInitiale   Float
+  dateExpertise             DateTime
+  montantInscription        Float     @default(0)
+  rangHypotheque            Int       @default(1)
   datePeremptionInscription DateTime
-  soldePret                Float
-  dateEcheancePret         DateTime?
-  pjExpertisePath          String?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  soldePret                 Float     @default(0)
+  dateEcheancePret          DateTime?
+  pjExpertisePath           String?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
 
   historique HistoriqueValeur[]
   alertes    Alert[]
+
+  // Contrainte métier : un même TF ne peut avoir qu'un seul rang de chaque
+  @@unique([numeroTitreFoncier, rangHypotheque])
+
+  // Index pour recherche et filtres (getAll)
+  @@index([nomClient])
+  @@index([codeClient])
+  @@index([ville])
+  @@index([zoneGeographique])
+  @@index([rangHypotheque])
+  // Index pour le calcul des alertes (ancienneté expertise, péremption)
+  @@index([dateExpertise])
+  @@index([datePeremptionInscription])
+  @@index([createdAt])
 }
 
 model HistoriqueValeur {
-  id                  Int      @id @default(autoincrement())
-  hypothequeId        Int
-  valeurExpertise     Float
-  dateExpertise       DateTime
-  zoneGeographique    String
-  statutOccupation    String
-  decoteZone          Float
-  decoteAnciennete    Float
-  decoteOccupation    Float
-  decoteTotale        Float
+  id                    Int      @id @default(autoincrement())
+  hypothequeId          Int
+  valeurExpertise       Float
+  dateExpertise         DateTime
+  zoneGeographique      String
+  statutOccupation      String
+  decoteZone            Float
+  decoteAnciennete      Float
+  decoteOccupation      Float
+  decoteTotale          Float
   valeurNetteCouverture Float
-  loanToValue         Float
-  modifiePar          String
-  dateModification    DateTime @default(now())
-  motif               String?
+  loanToValue           Float
+  modifiePar            String
+  motif                 String?
+  dateModification      DateTime @default(now())
 
   hypotheque Hypotheque @relation(fields: [hypothequeId], references: [id], onDelete: Cascade)
+
+  // Index FK + tri chronologique (requête la plus fréquente)
+  @@index([hypothequeId])
+  @@index([hypothequeId, dateModification])
 }
 
 model Alert {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   hypothequeId Int
   type         String
   message      String
   dateEcheance DateTime?
-  lu           Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  lu           Boolean   @default(false)
+  createdAt    DateTime  @default(now())
 
   hypotheque Hypotheque @relation(fields: [hypothequeId], references: [id], onDelete: Cascade)
+
+  // Index FK + filtres courants (lu/non-lu, par type)
+  @@index([hypothequeId])
+  @@index([hypothequeId, lu])
+  @@index([type])
+  @@index([lu])
+  @@index([createdAt])
 }
