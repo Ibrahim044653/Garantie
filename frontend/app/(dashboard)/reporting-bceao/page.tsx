@@ -34,9 +34,12 @@ interface SyscohadaRow {
 
 interface Portefeuille {
   nombreHypotheques: number;
-  encoursTotalGlobal: number;
-  vncTotaleGlobal: number;
+  encoursTotalFCFA: number;
+  encoursTotalGlobal?: number;
+  vncTotaleFCFA: number;
+  vncTotaleGlobal?: number;
   tauxCouverture: number;
+  provisions?: number;
 }
 
 interface ReportingBceaoData {
@@ -159,13 +162,13 @@ export default function ReportingBceaoPage() {
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Encours total</p>
               <p className="text-2xl font-bold text-blue-700 mt-1">
-                {portefeuille ? fmtM(portefeuille.encoursTotalGlobal) : '—'}
+                {portefeuille ? fmtM(portefeuille.encoursTotalFCFA ?? portefeuille.encoursTotalGlobal ?? 0) : '—'}
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">VNC totale</p>
               <p className="text-2xl font-bold text-slate-800 mt-1">
-                {portefeuille ? fmtM(portefeuille.vncTotaleGlobal) : '—'}
+                {portefeuille ? fmtM(portefeuille.vncTotaleFCFA ?? portefeuille.vncTotaleGlobal ?? 0) : '—'}
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
@@ -202,7 +205,7 @@ export default function ReportingBceaoPage() {
                         />
                       </div>
                       <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span>Seuil : {ratio.seuil.toFixed(1)}{ratio.unite}</span>
+                        <span>Seuil : {ratio.seuil != null ? ratio.seuil.toFixed(1) : 'N/A'}{ratio.unite}</span>
                         <span className={`font-semibold ${c.value}`}>
                           {ratio.statut === 'FAVORABLE' ? 'Conforme' : ratio.statut === 'ATTENTION' ? 'À surveiller' : 'Non conforme'}
                         </span>

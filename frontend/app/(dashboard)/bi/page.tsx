@@ -196,8 +196,55 @@ export default function BiPage() {
         biApi.overview(),
         biApi.kpis(),
       ]);
-      setOverview(ovRes.data?.data ?? ovRes.data ?? null);
-      setKpis(kpisRes.data?.data ?? kpisRes.data ?? []);
+
+      // API retourne { kpis:{encours,vncTotale,...}, tendances, byZone, classifications, topRisques }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw: any = ovRes.data?.data ?? ovRes.data ?? {};
+      const k = raw.kpis ?? {};
+      const transformed: BiOverview = {
+        vncTotale:      { valeur: Number(k.vncTotale ?? 0),       deltaPct: Number(k.vncGrowthPct ?? 0) },
+        encoursTotale:  { valeur: Number(k.encours ?? 0),         deltaPct: Number(k.encoursGrowthPct ?? 0) },
+        tauxCouverture: { valeur: Number(k.tauxCouverture ?? 0) },
+        expectedLoss:   { valeur: Number(k.provisionsTotal ?? 0) },
+        tendances:  (raw.tendances ?? []).map((t: any) => ({ mois: t.mois, vnc: Number(t.vnc), encours: Number(t.encours) })),
+        classifications: Object.entries(raw.classifications ?? {}).map(([name, value]) => ({ name, value: Number(value) })),
+        zones: (raw.byZone ?? []).map((z: any) => ({
+          zone: z.zone,
+          hypotheques: z.count ?? 0,
+          encours: Number(z.encours ?? 0),
+          vnc: Number(z.vnc ?? 0),
+          tauxCouverture: Number(z.tauxCouverture ?? 0),
+          shortfalls: z.shortfalls ?? 0,
+        })),
+        top5Risques: (raw.topRisques ?? []).map((r: any) => ({
+          id: r.hypothequeId,
+          client: r.nomClient ?? '—',
+          ltv: Number(r.ltv ?? 0),
+          classification: r.classification ?? '',
+          ead: Number(r.ead ?? 0),
+          provision: Number(r.provision ?? 0),
+        })),
+      };
+      setOverview(transformed);
+
+      // API retourne { role, kpis: { totalHypotheques, ... } }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const kpisRaw: any = kpisRes.data?.data ?? kpisRes.data ?? {};
+      const kpisObj = kpisRaw.kpis ?? {};
+      const LABEL_MAP: Record<string, string> = {
+        totalHypotheques: 'Hypothèques', totalClients: 'Clients', totalPrets: 'Prêts',
+        alertesNonLues: 'Alertes non lues', workflowPending: 'Workflow en attente',
+        shortfallsCount: 'Shortfalls', tauxCouverture: 'Taux de couverture',
+        provisionsTotal: 'Provisions totales', douteux: 'Douteux', contentieux: 'Contentieux',
+        newHypotheques: 'Nouvelles hypothèques', documentsUploaded: 'Documents uploadés',
+        impayes: 'Impayés', encoursTotalM: 'Encours (M FCFA)',
+        inscriptionsPerimees: 'Inscriptions périmées', expertisesAnciennes: 'Expertises > 5 ans',
+      };
+      const kpisArray: BiKpi[] = Object.entries(kpisObj).map(([key, val]) => ({
+        label: LABEL_MAP[key] ?? key,
+        valeur: val as number | string,
+      }));
+      setKpis(kpisArray);
     } catch {
       setError('Impossible de charger le tableau de bord BI.');
     } finally {
