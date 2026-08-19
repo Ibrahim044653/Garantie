@@ -30,6 +30,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/carte': 'Carte des biens',
   '/admin/users': 'Gestion des Utilisateurs',
   '/profil': 'Mon Profil',
+  '/rapports': 'Rapports & Exports',
+  '/notifications': 'Notifications',
+  '/audit': 'Journal d\'audit',
+  '/mainlevees': 'Mainlevées & Radiations',
+  '/recouvrement': 'Module Recouvrement',
+  '/import': 'Import en masse',
+  '/admin/experts': 'Experts Agréés',
 };
 
 
