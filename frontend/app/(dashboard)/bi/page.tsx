@@ -115,7 +115,9 @@ const Spinner = () => (
 
 async function exportPPTX(overview: BiOverview | null) {
   try {
-    // Dynamic import — works if pptxgenjs is installed, otherwise falls back
+    // Dynamic import — optional dep; falls back gracefully if not installed
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const PptxGenJS = (await import('pptxgenjs')).default;
     const pptx = new PptxGenJS();
 
