@@ -3,9 +3,50 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  GESTIONNAIRE_GARANTIES
+  RESPONSABLE_RISQUES
+  ENGAGEMENTS
+  AUDIT_INTERNE
+}
+
+enum NatureBien {
+  TERRAIN_NU
+  VILLA
+  IMMEUBLE_RAPPORT
+  USINE
+  BUREAU
+}
+
+enum ZoneGeographique {
+  ZONE_A
+  ZONE_B
+  ZONE_C
+  ZONE_INDUSTRIELLE
+}
+
+enum StatutOccupation {
+  LIBRE
+  OCCUPE_PROPRIETAIRE
+  LOUE_AVEC_BAIL
+}
+
+enum AlertType {
+  SHORTFALL
+  EXPERTISE_EXPIREE
+  EXPERTISE_BIENTOT_EXPIREE
+  EXPERTISE_RENOUVELLEMENT
+  INSCRIPTION_PERIMEE
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
 
 model User {
   id         Int      @id @default(autoincrement())
@@ -13,7 +54,7 @@ model User {
   password   String
   nom        String
   prenom     String
-  role       String   @default("GESTIONNAIRE_GARANTIES")
+  role       UserRole @default(GESTIONNAIRE_GARANTIES)
   mfaSecret  String?
   mfaEnabled Boolean  @default(false)
   createdAt  DateTime @default(now())
@@ -23,67 +64,62 @@ model User {
 }
 
 model Hypotheque {
-  id                        Int       @id @default(autoincrement())
+  id                        Int              @id @default(autoincrement())
   codeClient                String
   nomClient                 String
-  numeroPret                String    @unique
+  numeroPret                String           @unique
   numeroTitreFoncier        String
-  natureBien                String
+  natureBien                NatureBien
   ville                     String
   quartier                  String?
   lot                       String?
   ilot                      String?
-  zoneGeographique          String
-  statutOccupation          String
-  valeurExpertiseInitiale   Float
-  dateExpertise             DateTime
-  montantInscription        Float     @default(0)
-  rangHypotheque            Int       @default(1)
-  datePeremptionInscription DateTime
-  soldePret                 Float     @default(0)
-  dateEcheancePret          DateTime?
+  zoneGeographique          ZoneGeographique
+  statutOccupation          StatutOccupation
+  valeurExpertiseInitiale   Decimal          @db.Decimal(18, 2)
+  dateExpertise             DateTime         @db.Timestamptz
+  montantInscription        Decimal          @default(0) @db.Decimal(18, 2)
+  rangHypotheque            Int              @default(1)
+  datePeremptionInscription DateTime         @db.Timestamptz
+  soldePret                 Decimal          @default(0) @db.Decimal(18, 2)
+  dateEcheancePret          DateTime?        @db.Timestamptz
   pjExpertisePath           String?
-  createdAt                 DateTime  @default(now())
-  updatedAt                 DateTime  @updatedAt
+  createdAt                 DateTime         @default(now()) @db.Timestamptz
+  updatedAt                 DateTime         @updatedAt @db.Timestamptz
 
   historique HistoriqueValeur[]
   alertes    Alert[]
 
-  // Contrainte métier : un même TF ne peut avoir qu'un seul rang de chaque
   @@unique([numeroTitreFoncier, rangHypotheque])
-
-  // Index pour recherche et filtres (getAll)
   @@index([nomClient])
   @@index([codeClient])
   @@index([ville])
   @@index([zoneGeographique])
   @@index([rangHypotheque])
-  // Index pour le calcul des alertes (ancienneté expertise, péremption)
   @@index([dateExpertise])
   @@index([datePeremptionInscription])
   @@index([createdAt])
 }
 
 model HistoriqueValeur {
-  id                    Int      @id @default(autoincrement())
+  id                    Int              @id @default(autoincrement())
   hypothequeId          Int
-  valeurExpertise       Float
-  dateExpertise         DateTime
-  zoneGeographique      String
-  statutOccupation      String
-  decoteZone            Float
-  decoteAnciennete      Float
-  decoteOccupation      Float
-  decoteTotale          Float
-  valeurNetteCouverture Float
-  loanToValue           Float
+  valeurExpertise       Decimal          @db.Decimal(18, 2)
+  dateExpertise         DateTime         @db.Timestamptz
+  zoneGeographique      ZoneGeographique
+  statutOccupation      StatutOccupation
+  decoteZone            Decimal          @db.Decimal(5, 2)
+  decoteAnciennete      Decimal          @db.Decimal(5, 2)
+  decoteOccupation      Decimal          @db.Decimal(5, 2)
+  decoteTotale          Decimal          @db.Decimal(5, 2)
+  valeurNetteCouverture Decimal          @db.Decimal(18, 2)
+  loanToValue           Decimal          @db.Decimal(10, 4)
   modifiePar            String
   motif                 String?
-  dateModification      DateTime @default(now())
+  dateModification      DateTime         @default(now()) @db.Timestamptz
 
   hypotheque Hypotheque @relation(fields: [hypothequeId], references: [id], onDelete: Cascade)
 
-  // Index FK + tri chronologique (requête la plus fréquente)
   @@index([hypothequeId])
   @@index([hypothequeId, dateModification])
 }
@@ -91,15 +127,14 @@ model HistoriqueValeur {
 model Alert {
   id           Int       @id @default(autoincrement())
   hypothequeId Int
-  type         String
+  type         AlertType
   message      String
-  dateEcheance DateTime?
+  dateEcheance DateTime? @db.Timestamptz
   lu           Boolean   @default(false)
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime  @default(now()) @db.Timestamptz
 
   hypotheque Hypotheque @relation(fields: [hypothequeId], references: [id], onDelete: Cascade)
 
-  // Index FK + filtres courants (lu/non-lu, par type)
   @@index([hypothequeId])
   @@index([hypothequeId, lu])
   @@index([type])
