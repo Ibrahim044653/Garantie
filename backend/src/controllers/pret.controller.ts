@@ -69,12 +69,10 @@ export const getAll = async (req: AuthRequest, res: Response): Promise<void> => 
 
     res.json({
       data: prets.map((p) => serializePret(p as unknown as Record<string, unknown>)),
-      pagination: {
-        total,
-        page: parseInt(page as string),
-        limit: take,
-        totalPages: Math.ceil(total / take),
-      },
+      total,
+      page: parseInt(page as string),
+      limit: take,
+      totalPages: Math.ceil(total / take),
     });
   } catch (err) {
     logger.error('pret.getAll error:', err);
@@ -108,12 +106,10 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
     ]);
 
     res.json({
-      encoursTotalActif: Number(encours._sum.montantRestant ?? 0),
-      pretsByStatut: parStatut.map((s) => ({ statut: s.statut, count: s._count.id })),
-      impayes: {
-        count: impayes._count.id,
-        montantTotal: Number(impayes._sum.montantTotal ?? 0),
-      },
+      encoursTotal: Number(encours._sum.montantRestant ?? 0),
+      nbActifs: parStatut.find((s) => s.statut === 'ACTIF')?._count.id ?? 0,
+      nbEnDefaut: parStatut.find((s) => s.statut === 'EN_DEFAUT')?._count.id ?? 0,
+      totalImpayes: Number(impayes._sum.montantTotal ?? 0),
     });
   } catch (err) {
     logger.error('pret.getStats error:', err);
@@ -170,8 +166,9 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
 export const create = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const {
-      clientId,
-      numeroPret,
+      clientId: rawClientId,
+      codeClient,
+      numeroPret: rawNumeroPret,
       montantInitial,
       tauxInteret,
       dureeMois,
@@ -179,6 +176,25 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
       dateDebut,
       objet,
     } = req.body;
+
+    // Resolve clientId — accept either clientId (int) or codeClient (string)
+    let resolvedClientId: number;
+    if (rawClientId) {
+      resolvedClientId = parseInt(rawClientId);
+    } else if (codeClient) {
+      const client = await prisma.client.findUnique({ where: { codeClient } });
+      if (!client) {
+        res.status(404).json({ error: `Client introuvable avec le code : ${codeClient}` });
+        return;
+      }
+      resolvedClientId = client.id;
+    } else {
+      res.status(400).json({ error: 'clientId ou codeClient est requis' });
+      return;
+    }
+
+    // Auto-generate numeroPret if not provided
+    const numeroPret = rawNumeroPret || `PRE-${Date.now()}`;
 
     const montant = parseFloat(montantInitial);
     const taux = parseFloat(tauxInteret);
@@ -192,7 +208,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
     // Créer le prêt
     const pret = await prisma.pret.create({
       data: {
-        clientId: parseInt(clientId),
+        clientId: resolvedClientId,
         numeroPret,
         montantInitial: montant,
         montantRestant: montant,

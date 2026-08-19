@@ -119,8 +119,8 @@ export default function PretsPage() {
       fetchData();
       fetchStats();
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } };
-      setError(e?.response?.data?.message ?? 'Une erreur est survenue');
+      const data = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data;
+      setError(data?.message ?? data?.error ?? 'Une erreur est survenue');
     } finally {
       setSaving(false);
     }
