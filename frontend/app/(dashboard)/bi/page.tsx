@@ -156,10 +156,22 @@ async function exportPPTX(overview: BiOverview | null) {
       fontSize: 14, color: '94a3b8', italic: true, align: 'center',
     });
 
-    await pptx.writeFile({ fileName: 'comite-credit.pptx' });
+    // Use arraybuffer + manual download link — more reliable than writeFile in Next.js
+    const buffer = await pptx.write({ outputType: 'arraybuffer' }) as ArrayBuffer;
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'comite-credit.pptx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    alert('Erreur lors de l\'export PowerPoint : ' + msg);
+    alert('Erreur export PowerPoint : ' + msg);
   }
 }
 
