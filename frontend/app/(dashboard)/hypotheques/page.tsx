@@ -138,9 +138,10 @@ export default function HypothequesPage() {
               className="form-input w-auto text-sm"
             >
               <option value="">Toutes les zones</option>
-              <option value="A">Zone A</option>
-              <option value="B">Zone B</option>
-              <option value="C">Zone C</option>
+              <option value="ZONE_A">Zone A</option>
+              <option value="ZONE_B">Zone B</option>
+              <option value="ZONE_C">Zone C</option>
+              <option value="ZONE_INDUSTRIELLE">Zone Industrielle</option>
             </select>
 
             <select
@@ -150,10 +151,10 @@ export default function HypothequesPage() {
             >
               <option value="">Toutes natures</option>
               <option value="VILLA">Villa</option>
-              <option value="APPARTEMENT">Appartement</option>
-              <option value="TERRAIN">Terrain</option>
-              <option value="LOCAL_COMMERCIAL">Local Commercial</option>
-              <option value="IMMEUBLE">Immeuble</option>
+              <option value="IMMEUBLE_RAPPORT">Immeuble de rapport</option>
+              <option value="TERRAIN_NU">Terrain nu</option>
+              <option value="BUREAU">Bureau / Local</option>
+              <option value="USINE">Usine</option>
             </select>
 
             <select
@@ -173,9 +174,9 @@ export default function HypothequesPage() {
               className="form-input w-auto text-sm"
             >
               <option value="">Occupation</option>
+              <option value="LIBRE">Libre / Vacant</option>
               <option value="OCCUPE_PROPRIETAIRE">Occupé (Prop.)</option>
-              <option value="LOUE">Loué</option>
-              <option value="VACANT">Vacant</option>
+              <option value="LOUE_AVEC_BAIL">Loué avec bail</option>
             </select>
 
             <select

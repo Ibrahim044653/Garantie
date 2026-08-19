@@ -67,10 +67,10 @@ export function expertiseAgeMonths(dateExpertise: string): number {
 // ---------- Label Maps ----------
 export const NATURE_LABELS: Record<NatureBien, string> = {
   VILLA: 'Villa',
-  APPARTEMENT: 'Appartement',
-  TERRAIN: 'Terrain',
-  LOCAL_COMMERCIAL: 'Local Commercial',
-  IMMEUBLE: 'Immeuble',
+  IMMEUBLE_RAPPORT: 'Immeuble de rapport',
+  TERRAIN_NU: 'Terrain nu',
+  BUREAU: 'Bureau / Local commercial',
+  USINE: 'Usine / Entrepôt',
 };
 
 export const STATUT_LABELS: Record<StatutHypotheque, string> = {
@@ -86,16 +86,16 @@ export const STATUT_COLORS: Record<StatutHypotheque, string> = {
 };
 
 export const OCCUPATION_LABELS: Record<StatutOccupation, string> = {
+  LIBRE: 'Libre / Vacant',
   OCCUPE_PROPRIETAIRE: 'Occupé (Propriétaire)',
-  LOUE: 'Loué',
-  VACANT: 'Vacant',
+  LOUE_AVEC_BAIL: 'Loué avec bail',
 };
 
 export const ZONE_LABELS: Record<ZoneGeographique, string> = {
-  A: 'Zone A',
-  B: 'Zone B',
-  C: 'Zone C',
-  ZONE_INDUSTRIELLE: 'Zone Industrielle (Spécifique)',
+  ZONE_A: 'Zone A — Urbaine prime',
+  ZONE_B: 'Zone B — Standard',
+  ZONE_C: 'Zone C — Rurale',
+  ZONE_INDUSTRIELLE: 'Zone Industrielle',
 };
 
 export const ALERTE_TYPE_LABELS: Record<AlerteType, string> = {

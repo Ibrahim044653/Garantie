@@ -16,13 +16,13 @@ const schema = z.object({
   nomClient: z.string().min(2, 'Nom client requis'),
   numeroPret: z.string().min(1, 'Numéro prêt requis'),
   numeroTitreFoncier: z.string().min(1, 'N° titre foncier requis'),
-  natureBien: z.enum(['VILLA', 'APPARTEMENT', 'TERRAIN', 'LOCAL_COMMERCIAL', 'IMMEUBLE']),
+  natureBien: z.enum(['TERRAIN_NU', 'VILLA', 'IMMEUBLE_RAPPORT', 'USINE', 'BUREAU']),
   ville: z.string().min(1, 'Ville requise'),
-  quartier: z.string().min(1, 'Quartier requis'),
+  quartier: z.string().optional(),
   lot: z.string().optional(),
   ilot: z.string().optional(),
-  zoneGeographique: z.enum(['A', 'B', 'C', 'ZONE_INDUSTRIELLE']),
-  statutOccupation: z.enum(['OCCUPE_PROPRIETAIRE', 'LOUE', 'VACANT']),
+  zoneGeographique: z.enum(['ZONE_A', 'ZONE_B', 'ZONE_C', 'ZONE_INDUSTRIELLE']),
+  statutOccupation: z.enum(['LIBRE', 'OCCUPE_PROPRIETAIRE', 'LOUE_AVEC_BAIL']),
   valeurExpertiseInitiale: z.coerce.number().positive('Valeur doit être positive'),
   dateExpertise: z.string().min(1, 'Date expertise requise'),
   montantInscription: z.coerce.number().positive(),
@@ -47,20 +47,22 @@ const STEPS = [
 function calcPreview(data: Partial<FormData>) {
   if (!data.valeurExpertiseInitiale || !data.zoneGeographique || !data.dateExpertise || !data.statutOccupation) return null;
 
-  const decoteZone = data.zoneGeographique === 'A' ? 0
-    : data.zoneGeographique === 'B' ? 20
-    : data.zoneGeographique === 'ZONE_INDUSTRIELLE' ? 40
-    : 40; // Zone C et ZONE_INDUSTRIELLE : 40%
+  const decoteZone = data.zoneGeographique === 'ZONE_A' ? 20
+    : data.zoneGeographique === 'ZONE_B' ? 30
+    : data.zoneGeographique === 'ZONE_C' ? 45
+    : 40; // ZONE_INDUSTRIELLE
 
   const now = new Date();
   const exp = new Date(data.dateExpertise);
-  const months = Math.max(0, (now.getFullYear() - exp.getFullYear()) * 12 + now.getMonth() - exp.getMonth());
-  const decoteAnciennete = months <= 36 ? 0 : months <= 60 ? 10 : months <= 84 ? 15 : 20;
+  const ageYears = (now.getTime() - exp.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+  const decoteAnciennete = ageYears <= 3 ? 0 : ageYears <= 5 ? 10 : 100;
 
-  const decoteOccupation = data.statutOccupation === 'OCCUPE_PROPRIETAIRE' ? 0
-    : data.statutOccupation === 'LOUE' ? 15 : 25;
+  const decoteOccupation = data.natureBien === 'TERRAIN_NU' ? 0
+    : data.statutOccupation === 'LIBRE' ? 0
+    : data.statutOccupation === 'OCCUPE_PROPRIETAIRE' ? 5
+    : 15; // LOUE_AVEC_BAIL
 
-  const decoteTotale = Math.min(decoteZone + decoteAnciennete + decoteOccupation, 60);
+  const decoteTotale = Math.min(decoteZone + decoteAnciennete + decoteOccupation, 100);
   const vnc = data.valeurExpertiseInitiale * (1 - decoteTotale / 100);
   const ltv = data.soldePret ? (data.soldePret / vnc) * 100 : 0;
 
@@ -94,7 +96,7 @@ export default function HypothequeForm({ initial }: Props) {
         soldePret: initial.soldePret,
         dateEcheancePret: initial.dateEcheancePret?.slice(0, 10),
       }
-    : { rangHypotheque: 1, zoneGeographique: 'A', natureBien: 'VILLA', statutOccupation: 'OCCUPE_PROPRIETAIRE' };
+    : { rangHypotheque: 1, zoneGeographique: 'ZONE_A', natureBien: 'VILLA', statutOccupation: 'OCCUPE_PROPRIETAIRE' };
 
   const {
     register,
@@ -135,9 +137,8 @@ export default function HypothequeForm({ initial }: Props) {
       }
       router.push('/hypotheques');
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-          ?? 'Erreur lors de la sauvegarde';
+      const data = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data;
+      const msg = data?.message ?? data?.error ?? 'Erreur lors de la sauvegarde';
       setServerError(msg);
     } finally {
       setSaving(false);
@@ -199,10 +200,10 @@ export default function HypothequeForm({ initial }: Props) {
               <Field label="Nature du Bien *" error={errors.natureBien?.message} className="col-span-2">
                 <select {...register('natureBien')} className="form-input">
                   <option value="VILLA">Villa</option>
-                  <option value="APPARTEMENT">Appartement</option>
-                  <option value="TERRAIN">Terrain</option>
-                  <option value="LOCAL_COMMERCIAL">Local Commercial</option>
-                  <option value="IMMEUBLE">Immeuble</option>
+                  <option value="IMMEUBLE_RAPPORT">Immeuble de rapport</option>
+                  <option value="TERRAIN_NU">Terrain nu</option>
+                  <option value="BUREAU">Bureau / Local commercial</option>
+                  <option value="USINE">Usine / Entrepôt</option>
                 </select>
               </Field>
             </div>
@@ -228,17 +229,17 @@ export default function HypothequeForm({ initial }: Props) {
               </Field>
               <Field label="Zone Géographique *" error={errors.zoneGeographique?.message}>
                 <select {...register('zoneGeographique')} className="form-input">
-                  <option value="A">Zone A (principale)</option>
-                  <option value="B">Zone B (secondaire)</option>
-                  <option value="C">Zone C (rurale)</option>
-                  <option value="ZONE_INDUSTRIELLE">Zone Industrielle (Spécifique)</option>
+                  <option value="ZONE_A">Zone A — Urbaine prime (décote 20%)</option>
+                  <option value="ZONE_B">Zone B — Standard (décote 30%)</option>
+                  <option value="ZONE_C">Zone C — Rurale (décote 45%)</option>
+                  <option value="ZONE_INDUSTRIELLE">Zone Industrielle (décote 40%)</option>
                 </select>
               </Field>
               <Field label="Statut Occupation *" error={errors.statutOccupation?.message}>
                 <select {...register('statutOccupation')} className="form-input">
-                  <option value="OCCUPE_PROPRIETAIRE">Occupé (Propriétaire)</option>
-                  <option value="LOUE">Loué</option>
-                  <option value="VACANT">Vacant</option>
+                  <option value="LIBRE">Libre / Vacant (décote 0%)</option>
+                  <option value="OCCUPE_PROPRIETAIRE">Occupé propriétaire (décote 5%)</option>
+                  <option value="LOUE_AVEC_BAIL">Loué avec bail (décote 15%)</option>
                 </select>
               </Field>
             </div>

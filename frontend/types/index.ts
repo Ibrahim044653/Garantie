@@ -14,18 +14,18 @@ export interface User {
 }
 
 export type NatureBien =
+  | 'TERRAIN_NU'
   | 'VILLA'
-  | 'APPARTEMENT'
-  | 'TERRAIN'
-  | 'LOCAL_COMMERCIAL'
-  | 'IMMEUBLE';
+  | 'IMMEUBLE_RAPPORT'
+  | 'USINE'
+  | 'BUREAU';
 
-export type ZoneGeographique = 'A' | 'B' | 'C' | 'ZONE_INDUSTRIELLE';
+export type ZoneGeographique = 'ZONE_A' | 'ZONE_B' | 'ZONE_C' | 'ZONE_INDUSTRIELLE';
 
 export type StatutOccupation =
+  | 'LIBRE'
   | 'OCCUPE_PROPRIETAIRE'
-  | 'LOUE'
-  | 'VACANT';
+  | 'LOUE_AVEC_BAIL';
 
 export type StatutHypotheque =
   | 'A_JOUR'
