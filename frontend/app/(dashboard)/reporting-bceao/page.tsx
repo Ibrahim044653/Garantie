@@ -17,19 +17,24 @@ interface RatioPrudentiel {
 }
 
 interface GrandRisque {
-  id: number | string;
-  nomClient: string;
+  codeClient?: string;
+  nom?: string;
+  nomClient?: string;
   encours: number;
-  pourcentagePortefeuille: number;
-  depassementSeuil: boolean;
+  pct?: number;
+  pourcentagePortefeuille?: number;
+  depasseSeuil?: boolean;
+  depassementSeuil?: boolean;
 }
 
 interface SyscohadaRow {
-  rubriqueComptable: string;
-  nombre: number;
+  rubrique?: string;
+  rubriqueComptable?: string;
+  count?: number;
+  nombre?: number;
   encours: number;
   provisions: number;
-  tauxProvision: number;
+  tauxProvision?: number;
 }
 
 interface Portefeuille {
@@ -47,6 +52,7 @@ interface ReportingBceaoData {
   ratiosPrudentiels?: RatioPrudentiel[];
   grandsRisques?: GrandRisque[];
   etatSyscohada?: SyscohadaRow[];
+  etatSYSCOHADA?: SyscohadaRow[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -110,7 +116,7 @@ export default function ReportingBceaoPage() {
   const portefeuille = data?.portefeuille;
   const ratios = data?.ratiosPrudentiels ?? [];
   const grandsRisques = data?.grandsRisques ?? [];
-  const syscohada = data?.etatSyscohada ?? [];
+  const syscohada = data?.etatSyscohada ?? data?.etatSYSCOHADA ?? [];
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -227,10 +233,10 @@ export default function ReportingBceaoPage() {
                 <h2 className="text-sm font-semibold text-slate-700">Grands Risques</h2>
                 <p className="text-xs text-slate-400 mt-0.5">Expositions supérieures à 15% du portefeuille</p>
               </div>
-              {grandsRisques.filter((g) => g.depassementSeuil).length > 0 && (
+              {grandsRisques.filter((g) => g.depasseSeuil ?? g.depassementSeuil).length > 0 && (
                 <span className="flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-full">
                   <AlertCircle className="w-3.5 h-3.5" />
-                  {grandsRisques.filter((g) => g.depassementSeuil).length} dépassement(s)
+                  {grandsRisques.filter((g) => g.depasseSeuil ?? g.depassementSeuil).length} dépassement(s)
                 </span>
               )}
             </div>
@@ -252,26 +258,29 @@ export default function ReportingBceaoPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {grandsRisques.map((gr) => {
-                      const dep = gr.pourcentagePortefeuille - 15;
+                    {grandsRisques.map((gr, idx) => {
+                      const pctVal = gr.pct ?? gr.pourcentagePortefeuille ?? 0;
+                      const depasse = gr.depasseSeuil ?? gr.depassementSeuil ?? false;
+                      const nomAffiche = gr.nom ?? gr.nomClient ?? gr.codeClient ?? '—';
+                      const dep = pctVal - 15;
                       return (
-                        <tr key={gr.id} className={`hover:bg-slate-50 transition-colors ${gr.depassementSeuil ? 'bg-red-50/40' : ''}`}>
-                          <td className="px-4 py-3 font-medium text-slate-800">{gr.nomClient}</td>
+                        <tr key={gr.codeClient ?? idx} className={`hover:bg-slate-50 transition-colors ${depasse ? 'bg-red-50/40' : ''}`}>
+                          <td className="px-4 py-3 font-medium text-slate-800">{nomAffiche}</td>
                           <td className="px-4 py-3 text-right tabular-nums text-slate-700">{fmtFCFA(gr.encours)}</td>
                           <td className="px-4 py-3 text-right tabular-nums font-semibold">
-                            <span className={gr.depassementSeuil ? 'text-red-600' : 'text-slate-700'}>
-                              {fmtPct(gr.pourcentagePortefeuille, 1)}
+                            <span className={depasse ? 'text-red-600' : 'text-slate-700'}>
+                              {fmtPct(pctVal, 1)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right tabular-nums text-slate-600">
-                            {gr.depassementSeuil ? (
+                            {depasse ? (
                               <span className="text-red-600 font-semibold">+{fmtPct(dep, 1)}</span>
                             ) : (
                               <span className="text-green-600">—</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            {gr.depassementSeuil ? (
+                            {depasse ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
                                 <AlertCircle className="w-3 h-3" /> ALERTE
                               </span>
@@ -313,29 +322,34 @@ export default function ReportingBceaoPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {syscohada.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-slate-800">{row.rubriqueComptable}</td>
-                        <td className="px-4 py-3 text-right tabular-nums text-slate-700">{row.nombre}</td>
-                        <td className="px-4 py-3 text-right tabular-nums text-slate-700">
-                          {(row.encours / 1_000_000).toFixed(0)}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-red-700 font-semibold">
-                          {(row.provisions / 1_000_000).toFixed(0)}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          <span className={`font-semibold ${
-                            row.tauxProvision >= 100
-                              ? 'text-red-600'
-                              : row.tauxProvision >= 50
-                              ? 'text-amber-600'
-                              : 'text-slate-700'
-                          }`}>
-                            {fmtPct(row.tauxProvision, 1)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {syscohada.map((row, idx) => {
+                      const libelle = row.rubrique ?? row.rubriqueComptable ?? '—';
+                      const nombre = row.count ?? row.nombre ?? 0;
+                      const taux = row.tauxProvision ?? (row.encours > 0 ? (row.provisions / row.encours) * 100 : 0);
+                      return (
+                        <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-3 font-medium text-slate-800">{libelle}</td>
+                          <td className="px-4 py-3 text-right tabular-nums text-slate-700">{nombre}</td>
+                          <td className="px-4 py-3 text-right tabular-nums text-slate-700">
+                            {((row.encours ?? 0) / 1_000_000).toFixed(0)}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums text-red-700 font-semibold">
+                            {((row.provisions ?? 0) / 1_000_000).toFixed(0)}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums">
+                            <span className={`font-semibold ${
+                              taux >= 100
+                                ? 'text-red-600'
+                                : taux >= 50
+                                ? 'text-amber-600'
+                                : 'text-slate-700'
+                            }`}>
+                              {fmtPct(taux, 1)}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
