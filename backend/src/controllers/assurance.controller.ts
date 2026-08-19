@@ -152,6 +152,11 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
     res.status(201).json(assurance);
   } catch (err) {
     logger.error('Assurance create error:', err);
+    const errMsg = err instanceof Error ? err.message : String(err);
+    if (errMsg.includes('Foreign key') || errMsg.includes('P2003')) {
+      res.status(400).json({ error: 'Le prêt / client / hypothèque indiqué(e) n\'existe pas (ID introuvable)' });
+      return;
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 };

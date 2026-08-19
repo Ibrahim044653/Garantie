@@ -154,8 +154,8 @@ function PoliceModal({ onClose, onSuccess }: PoliceModalProps) {
       await assurancesApi.create(payload);
       onSuccess();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg || 'Erreur lors de la création. Veuillez réessayer.');
+      const data = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data;
+      setError(data?.message ?? data?.error ?? 'Erreur lors de la création. Veuillez réessayer.');
     } finally {
       setSubmitting(false);
     }
