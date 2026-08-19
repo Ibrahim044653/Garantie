@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
+// ─── Enums existants ──────────────────────────────────────────────────────────
 
 enum UserRole {
   ADMIN
@@ -46,7 +46,66 @@ enum AlertType {
   INSCRIPTION_PERIMEE
 }
 
-// ─── Models ───────────────────────────────────────────────────────────────────
+// ─── Enums v2 ─────────────────────────────────────────────────────────────────
+
+// CRM Client
+enum TypeClient {
+  PARTICULIER
+  ENTREPRISE
+}
+
+enum StatutClient {
+  ACTIF
+  INACTIF
+  BLACKLISTE
+}
+
+// Loan Management
+enum TypeAmortissement {
+  LINEAIRE
+  CONSTANT
+  IN_FINE
+}
+
+enum StatutPret {
+  ACTIF
+  EN_DEFAUT
+  CLOTURE
+  RENEGOCIE
+  SOLDE
+}
+
+enum StatutEcheance {
+  EN_ATTENTE
+  PAYE
+  PARTIEL
+  IMPAYE
+}
+
+// Workflow
+enum TypeDemande {
+  CREATION_HYPOTHEQUE
+  REEVALUATION
+  RADIATION
+  CREATION_PRET
+  MODIFICATION_PRET
+}
+
+enum StatutDemande {
+  EN_ATTENTE
+  EN_COURS
+  APPROUVE
+  REJETE
+  ANNULE
+}
+
+enum StatutEtape {
+  EN_ATTENTE
+  APPROUVE
+  REJETE
+}
+
+// ─── Models existants ─────────────────────────────────────────────────────────
 
 model User {
   id         Int      @id @default(autoincrement())
@@ -57,8 +116,11 @@ model User {
   role       UserRole @default(GESTIONNAIRE_GARANTIES)
   mfaSecret  String?
   mfaEnabled Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+
+  demandesCreees  DemandeValidation[] @relation("CreateurDemande")
+  etapesValidees  EtapeValidation[]   @relation("ValideurEtape")
 
   @@index([role])
 }
@@ -84,15 +146,22 @@ model Hypotheque {
   soldePret                 Decimal          @default(0) @db.Decimal(18, 2)
   dateEcheancePret          DateTime?        @db.Timestamptz
   pjExpertisePath           String?
+  // FK v2
+  clientId                  Int?
+  pretId                    Int?
   createdAt                 DateTime         @default(now()) @db.Timestamptz
   updatedAt                 DateTime         @updatedAt @db.Timestamptz
 
   historique HistoriqueValeur[]
   alertes    Alert[]
+  client     Client?            @relation(fields: [clientId], references: [id])
+  pret       Pret?              @relation(fields: [pretId], references: [id])
 
   @@unique([numeroTitreFoncier, rangHypotheque])
   @@index([nomClient])
   @@index([codeClient])
+  @@index([clientId])
+  @@index([pretId])
   @@index([ville])
   @@index([zoneGeographique])
   @@index([rangHypotheque])
@@ -140,4 +209,131 @@ model Alert {
   @@index([type])
   @@index([lu])
   @@index([createdAt])
+}
+
+// ─── Module CRM Client ────────────────────────────────────────────────────────
+
+model Client {
+  id             Int          @id @default(autoincrement())
+  codeClient     String       @unique
+  typeClient     TypeClient   @default(PARTICULIER)
+  nom            String
+  prenom         String?
+  raisonSociale  String?
+  telephone      String?
+  email          String?
+  adresse        String?
+  ville          String?
+  dateNaissance  DateTime?    @db.Date
+  numeroIdentite String?
+  statut         StatutClient @default(ACTIF)
+  createdAt      DateTime     @default(now()) @db.Timestamptz
+  updatedAt      DateTime     @updatedAt @db.Timestamptz
+
+  prets       Pret[]
+  hypotheques Hypotheque[]
+
+  @@index([nom])
+  @@index([codeClient])
+  @@index([statut])
+  @@index([typeClient])
+}
+
+// ─── Module Loan Management ───────────────────────────────────────────────────
+
+model Pret {
+  id                Int               @id @default(autoincrement())
+  numeroPret        String            @unique
+  clientId          Int
+  montantInitial    Decimal           @db.Decimal(18, 2)
+  montantRestant    Decimal           @db.Decimal(18, 2)
+  tauxInteret       Decimal           @db.Decimal(7, 4)
+  dureeMois         Int
+  typeAmortissement TypeAmortissement @default(LINEAIRE)
+  dateDebut         DateTime          @db.Timestamptz
+  dateFin           DateTime          @db.Timestamptz
+  statut            StatutPret        @default(ACTIF)
+  objet             String?
+  createdAt         DateTime          @default(now()) @db.Timestamptz
+  updatedAt         DateTime          @updatedAt @db.Timestamptz
+
+  client      Client         @relation(fields: [clientId], references: [id])
+  echeances   EcheancePret[]
+  hypotheques Hypotheque[]
+
+  @@index([clientId])
+  @@index([statut])
+  @@index([dateDebut])
+  @@index([numeroPret])
+}
+
+model EcheancePret {
+  id                 Int            @id @default(autoincrement())
+  pretId             Int
+  numeroEcheance     Int
+  dateEcheance       DateTime       @db.Timestamptz
+  capitalDu          Decimal        @db.Decimal(18, 2)
+  interetsDus        Decimal        @db.Decimal(18, 2)
+  montantTotal       Decimal        @db.Decimal(18, 2)
+  capitalRembourse   Decimal        @default(0) @db.Decimal(18, 2)
+  interetsRembourses Decimal        @default(0) @db.Decimal(18, 2)
+  penalites          Decimal        @default(0) @db.Decimal(18, 2)
+  montantPaye        Decimal        @default(0) @db.Decimal(18, 2)
+  statut             StatutEcheance @default(EN_ATTENTE)
+  datePaiement       DateTime?      @db.Timestamptz
+  commentaire        String?
+
+  pret Pret @relation(fields: [pretId], references: [id], onDelete: Cascade)
+
+  @@unique([pretId, numeroEcheance])
+  @@index([pretId])
+  @@index([pretId, statut])
+  @@index([dateEcheance])
+  @@index([statut])
+}
+
+// ─── Module Workflow ──────────────────────────────────────────────────────────
+
+model DemandeValidation {
+  id            Int           @id @default(autoincrement())
+  type          TypeDemande
+  entiteId      Int
+  entiteType    String
+  titre         String
+  description   String?
+  statut        StatutDemande @default(EN_ATTENTE)
+  createurId    Int
+  etapeActuelle Int           @default(1)
+  totalEtapes   Int           @default(3)
+  createdAt     DateTime      @default(now()) @db.Timestamptz
+  updatedAt     DateTime      @updatedAt @db.Timestamptz
+
+  createur User              @relation("CreateurDemande", fields: [createurId], references: [id])
+  etapes   EtapeValidation[]
+
+  @@index([statut])
+  @@index([createurId])
+  @@index([entiteId, entiteType])
+  @@index([type])
+}
+
+model EtapeValidation {
+  id             Int         @id @default(autoincrement())
+  demandeId      Int
+  numeroEtape    Int
+  libelle        String
+  roleRequis     UserRole
+  valideurId     Int?
+  statut         StatutEtape @default(EN_ATTENTE)
+  commentaire    String?
+  dateTraitement DateTime?   @db.Timestamptz
+  createdAt      DateTime    @default(now()) @db.Timestamptz
+
+  demande  DemandeValidation @relation(fields: [demandeId], references: [id], onDelete: Cascade)
+  valideur User?             @relation("ValideurEtape", fields: [valideurId], references: [id])
+
+  @@unique([demandeId, numeroEtape])
+  @@index([demandeId])
+  @@index([statut])
+  @@index([roleRequis])
 }
