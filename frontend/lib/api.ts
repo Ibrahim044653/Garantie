@@ -150,6 +150,24 @@ export const workflowApi = {
   mesDemandes: () => apiClient.get('/workflow/mes-demandes'),
 };
 
+// ---------- Provisions IFRS 9 ----------
+export const provisionsApi = {
+  get: () => apiClient.get('/provisions'),
+  export: () => apiClient.get('/provisions/export', { responseType: 'blob' }),
+};
+
+// ---------- Scoring ----------
+export const scoringApi = {
+  get: () => apiClient.get('/scoring'),
+  stress: (facteur?: number) => apiClient.get('/scoring/stress', { params: { facteur } }),
+};
+
+// ---------- Reporting BCEAO ----------
+export const reportingBceaoApi = {
+  ratios: () => apiClient.get('/reporting-bceao/ratios'),
+  export: () => apiClient.get('/reporting-bceao/export', { responseType: 'blob' }),
+};
+
 // Helper to trigger CSV file download
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);

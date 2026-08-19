@@ -15,6 +15,9 @@ import {
   UserCircle,
   CreditCard,
   GitBranch,
+  ShieldAlert,
+  TrendingUp,
+  FileText,
 } from 'lucide-react';
 
 const navItems = [
@@ -46,6 +49,24 @@ const navItems = [
     href: '/workflow',
     label: 'Workflow',
     icon: GitBranch,
+    exact: false,
+  },
+  {
+    href: '/provisions',
+    label: 'Provisions IFRS 9',
+    icon: ShieldAlert,
+    exact: false,
+  },
+  {
+    href: '/scoring',
+    label: 'Scoring & Risque',
+    icon: TrendingUp,
+    exact: false,
+  },
+  {
+    href: '/reporting-bceao',
+    label: 'Reporting BCEAO',
+    icon: FileText,
     exact: false,
   },
   {

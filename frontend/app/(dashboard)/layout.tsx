@@ -13,6 +13,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/clients': 'Gestion des Clients',
   '/prets': 'Gestion des Prêts',
   '/workflow': 'Workflow de Validation',
+  '/provisions': 'Provisions IFRS 9 / BCEAO',
+  '/scoring': 'Scoring & Analyse de Risque',
+  '/reporting-bceao': 'Reporting BCEAO',
   '/reporting': 'Reporting Annuel',
   '/alertes': 'Alertes',
   '/admin/users': 'Gestion des Utilisateurs',
@@ -27,6 +30,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith('/hypotheques/')) return 'Fiche Hypothèque';
   if (pathname.startsWith('/clients/')) return 'Fiche Client';
   if (pathname.startsWith('/prets/')) return 'Détail Prêt';
+  if (pathname.startsWith('/provisions')) return 'Provisions IFRS 9 / BCEAO';
+  if (pathname.startsWith('/scoring')) return 'Scoring & Analyse de Risque';
+  if (pathname.startsWith('/reporting-bceao')) return 'Reporting BCEAO';
   return 'Tableau de bord';
 }
 

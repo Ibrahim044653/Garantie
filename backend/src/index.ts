@@ -13,6 +13,9 @@ import { alerteRouter } from './routes/alerte.routes';
 import { clientRouter } from './routes/client.routes';
 import { pretRouter } from './routes/pret.routes';
 import { workflowRouter } from './routes/workflow.routes';
+import { provisionRouter } from './routes/provision.routes';
+import { scoringRouter } from './routes/scoring.routes';
+import { reportingBceaoRouter } from './routes/reporting-bceao.routes';
 import { generateAlerts } from './services/alert.service';
 
 const app = express();
@@ -62,6 +65,9 @@ app.use('/api/alertes', alerteRouter);
 app.use('/api/clients', clientRouter);
 app.use('/api/prets', pretRouter);
 app.use('/api/workflow', workflowRouter);
+app.use('/api/provisions', provisionRouter);
+app.use('/api/scoring', scoringRouter);
+app.use('/api/reporting-bceao', reportingBceaoRouter);
 
 // 404 handler
 app.use((_req, res) => {
