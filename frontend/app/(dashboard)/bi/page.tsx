@@ -115,9 +115,6 @@ const Spinner = () => (
 
 async function exportPPTX(overview: BiOverview | null) {
   try {
-    // Dynamic import — optional dep; falls back gracefully if not installed
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     const PptxGenJS = (await import('pptxgenjs')).default;
     const pptx = new PptxGenJS();
 
@@ -160,10 +157,9 @@ async function exportPPTX(overview: BiOverview | null) {
     });
 
     await pptx.writeFile({ fileName: 'comite-credit.pptx' });
-  } catch {
-    alert(
-      'Pour activer l\'export PowerPoint, exécutez:\n\nnpm install pptxgenjs\n\ndans le dossier frontend'
-    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    alert('Erreur lors de l\'export PowerPoint : ' + msg);
   }
 }
 
