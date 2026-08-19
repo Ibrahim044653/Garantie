@@ -26,11 +26,11 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
 
     for (const h of hypotheques) {
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale,
+        Number(h.valeurExpertiseInitiale),
         h.dateExpertise,
         h.zoneGeographique,
         h.statutOccupation,
-        h.soldePret,
+        Number(h.soldePret),
         h.natureBien,
       );
       vncTotale += d.valeurNetteCouverture;
@@ -40,14 +40,14 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
         topShortfallList.push({
           id: h.id, numeroTitreFoncier: h.numeroTitreFoncier, nomClient: h.nomClient,
           zoneGeographique: h.zoneGeographique, vnc: Math.round(d.valeurNetteCouverture),
-          soldePret: h.soldePret, ltv: d.loanToValue,
+          soldePret: Number(h.soldePret), ltv: d.loanToValue,
           statut: d.loanToValue > 100 ? 'SHORTFALL' : 'OK',
         });
       }
       repartitionZoneMap[h.zoneGeographique] = repartitionZoneMap[h.zoneGeographique] || { count: 0, vncTotal: 0, soldeTotal: 0 };
       repartitionZoneMap[h.zoneGeographique].count++;
       repartitionZoneMap[h.zoneGeographique].vncTotal += d.valeurNetteCouverture;
-      repartitionZoneMap[h.zoneGeographique].soldeTotal += h.soldePret;
+      repartitionZoneMap[h.zoneGeographique].soldeTotal += Number(h.soldePret);
       repartitionNatureMap[h.natureBien] = (repartitionNatureMap[h.natureBien] || 0) + 1;
     }
 
@@ -73,13 +73,13 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
     for (const h of historique) {
       const key = `${h.dateModification.getFullYear()}-${String(h.dateModification.getMonth() + 1).padStart(2, '0')}`;
       if (!byMonth[key]) byMonth[key] = { vnc: 0, ltv: 0, count: 0 };
-      byMonth[key].vnc += h.valeurNetteCouverture; byMonth[key].ltv += h.loanToValue; byMonth[key].count++;
+      byMonth[key].vnc += Number(h.valeurNetteCouverture); byMonth[key].ltv += Number(h.loanToValue); byMonth[key].count++;
     }
     const now = new Date();
     const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     if (!byMonth[currentKey]) byMonth[currentKey] = { vnc: 0, ltv: 0, count: 0 };
     for (const h of hypotheques) {
-      const d = calculerDecotes(h.valeurExpertiseInitiale, h.dateExpertise, h.zoneGeographique, h.statutOccupation, h.soldePret, h.natureBien);
+      const d = calculerDecotes(Number(h.valeurExpertiseInitiale), h.dateExpertise, h.zoneGeographique, h.statutOccupation, Number(h.soldePret), h.natureBien);
       byMonth[currentKey].vnc += d.valeurNetteCouverture;
       byMonth[currentKey].ltv += d.loanToValue < 999 ? d.loanToValue : 100;
       byMonth[currentKey].count++;
@@ -99,8 +99,8 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
       alertesActives,
       ltvMoyen: parseFloat(ltvMoyen.toFixed(2)),
       shortfalls,
-      encoursTotalPrets: hypotheques.reduce((s, h) => s + h.soldePret, 0),
-      valeurExpertiseTotale: hypotheques.reduce((s, h) => s + h.valeurExpertiseInitiale, 0),
+      encoursTotalPrets: hypotheques.reduce((s, h) => s + Number(h.soldePret), 0),
+      valeurExpertiseTotale: hypotheques.reduce((s, h) => s + Number(h.valeurExpertiseInitiale), 0),
       repartitionZone,
       repartitionNature,
       evolutionVNC,
@@ -184,14 +184,14 @@ export const getRepartitionZone = async (_req: AuthRequest, res: Response): Prom
       const zone = h.zoneGeographique;
       if (!repartition[zone]) repartition[zone] = { count: 0, vncTotal: 0, soldeTotal: 0 };
       repartition[zone].count++;
-      repartition[zone].soldeTotal += h.soldePret;
+      repartition[zone].soldeTotal += Number(h.soldePret);
 
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale,
+        Number(h.valeurExpertiseInitiale),
         h.dateExpertise,
         zone,
         h.statutOccupation,
-        h.soldePret,
+        Number(h.soldePret),
         h.natureBien,
       );
       repartition[zone].vncTotal += d.valeurNetteCouverture;
@@ -231,8 +231,8 @@ export const getEvolutionVNC = async (_req: AuthRequest, res: Response): Promise
       const d = h.dateModification;
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       if (!byMonth[key]) byMonth[key] = { vnc: 0, count: 0, ltv: 0 };
-      byMonth[key].vnc += h.valeurNetteCouverture;
-      byMonth[key].ltv += h.loanToValue;
+      byMonth[key].vnc += Number(h.valeurNetteCouverture);
+      byMonth[key].ltv += Number(h.loanToValue);
       byMonth[key].count++;
     }
 
@@ -244,11 +244,11 @@ export const getEvolutionVNC = async (_req: AuthRequest, res: Response): Promise
 
     for (const h of currentHypotheques) {
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale,
+        Number(h.valeurExpertiseInitiale),
         h.dateExpertise,
         h.zoneGeographique,
         h.statutOccupation,
-        h.soldePret,
+        Number(h.soldePret),
         h.natureBien,
       );
       byMonth[currentKey].vnc += d.valeurNetteCouverture;

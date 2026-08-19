@@ -42,11 +42,11 @@ export const getAnnualReport = async (_req: AuthRequest, res: Response): Promise
 
     const rows: AnnualReportRow[] = hypotheques.map((h) => {
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale,
+        Number(h.valeurExpertiseInitiale),
         h.dateExpertise,
         h.zoneGeographique,
         h.statutOccupation,
-        h.soldePret,
+        Number(h.soldePret),
         h.natureBien,
       );
 
@@ -74,7 +74,7 @@ export const getAnnualReport = async (_req: AuthRequest, res: Response): Promise
         ville: h.ville,
         zoneGeographique: h.zoneGeographique,
         statutOccupation: h.statutOccupation,
-        valeurExpertise: h.valeurExpertiseInitiale,
+        valeurExpertise: Number(h.valeurExpertiseInitiale),
         dateExpertise: h.dateExpertise,
         ageExpertise: ageStr,
         decoteZone: d.decoteZone,
@@ -83,10 +83,10 @@ export const getAnnualReport = async (_req: AuthRequest, res: Response): Promise
         decoteTotale: d.decoteTotale,
         valeurNetteCouverture: vnc,
         vnc,
-        soldePret: h.soldePret,
+        soldePret: Number(h.soldePret),
         loanToValue: ltv,
         ratioCouverture: ltv,
-        montantInscription: h.montantInscription,
+        montantInscription: Number(h.montantInscription),
         rangHypotheque: h.rangHypotheque,
         datePeremptionInscription: h.datePeremptionInscription,
         statut,
@@ -143,11 +143,11 @@ export const exportAnnualCSV = async (_req: AuthRequest, res: Response): Promise
 
     const rows = hypotheques.map((h) => {
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale,
+        Number(h.valeurExpertiseInitiale),
         h.dateExpertise,
         h.zoneGeographique,
         h.statutOccupation,
-        h.soldePret,
+        Number(h.soldePret),
         h.natureBien,
       );
 
@@ -198,8 +198,8 @@ export const exportAnnualExcel = async (_req: AuthRequest, res: Response): Promi
     // Sheet 1 — Détail
     const detail = hypotheques.map((h) => {
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale, h.dateExpertise, h.zoneGeographique,
-        h.statutOccupation, h.soldePret, h.natureBien,
+        Number(h.valeurExpertiseInitiale), h.dateExpertise, h.zoneGeographique,
+        h.statutOccupation, Number(h.soldePret), h.natureBien,
       );
       const ageYears = getAgeExpertiseYears(h.dateExpertise);
       const ageStr = ageYears < 1
@@ -221,7 +221,7 @@ export const exportAnnualExcel = async (_req: AuthRequest, res: Response): Promi
         'Ville': h.ville,
         'Zone': h.zoneGeographique,
         'Statut Occupation': h.statutOccupation,
-        'Valeur Expertise (FCFA)': h.valeurExpertiseInitiale,
+        'Valeur Expertise (FCFA)': Number(h.valeurExpertiseInitiale),
         'Date Expertise': h.dateExpertise.toLocaleDateString('fr-FR'),
         'Âge Expertise': ageStr,
         'Décote Zone (%)': d.decoteZone,
@@ -229,9 +229,9 @@ export const exportAnnualExcel = async (_req: AuthRequest, res: Response): Promi
         'Décote Occupation (%)': d.decoteOccupation,
         'Décote Totale (%)': d.decoteTotale,
         'VNC (FCFA)': Math.round(d.valeurNetteCouverture),
-        'Solde Prêt (FCFA)': h.soldePret,
+        'Solde Prêt (FCFA)': Number(h.soldePret),
         'LTV (%)': parseFloat(d.loanToValue.toFixed(2)),
-        'Montant Inscription (FCFA)': h.montantInscription,
+        'Montant Inscription (FCFA)': Number(h.montantInscription),
         'Rang': h.rangHypotheque,
         'Date Péremption': h.datePeremptionInscription.toLocaleDateString('fr-FR'),
         'Statut': statut,
@@ -249,14 +249,14 @@ export const exportAnnualExcel = async (_req: AuthRequest, res: Response): Promi
 
     for (const h of hypotheques) {
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale, h.dateExpertise, h.zoneGeographique,
-        h.statutOccupation, h.soldePret, h.natureBien,
+        Number(h.valeurExpertiseInitiale), h.dateExpertise, h.zoneGeographique,
+        h.statutOccupation, Number(h.soldePret), h.natureBien,
       );
       byZone[h.zoneGeographique].count++;
       byZone[h.zoneGeographique].vnc += d.valeurNetteCouverture;
-      byZone[h.zoneGeographique].solde += h.soldePret;
+      byZone[h.zoneGeographique].solde += Number(h.soldePret);
       totalVnc += d.valeurNetteCouverture;
-      totalSolde += h.soldePret;
+      totalSolde += Number(h.soldePret);
       if (d.hasShortfall) shortfalls++;
     }
 

@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, NatureBien, ZoneGeographique, StatutOccupation } from '@prisma/client';
 import path from 'path';
 import fs from 'fs';
 import * as XLSX from 'xlsx';
@@ -185,11 +185,11 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
 
     const pjExpertisePath = req.file ? req.file.filename : existing.pjExpertisePath;
 
-    const newValeur = valeurExpertiseInitiale != null ? parseFloat(valeurExpertiseInitiale) : existing.valeurExpertiseInitiale;
+    const newValeur = valeurExpertiseInitiale != null ? parseFloat(valeurExpertiseInitiale) : Number(existing.valeurExpertiseInitiale);
     const newDate = dateExpertise ? new Date(dateExpertise) : existing.dateExpertise;
     const newZone = zoneGeographique ?? existing.zoneGeographique;
     const newStatut = statutOccupation ?? existing.statutOccupation;
-    const newSolde = soldePret != null ? parseFloat(soldePret) : existing.soldePret;
+    const newSolde = soldePret != null ? parseFloat(soldePret) : Number(existing.soldePret);
 
     const h = await prisma.hypotheque.update({
       where: { id },
@@ -297,12 +297,12 @@ export const reevaluer = async (req: AuthRequest, res: Response): Promise<void> 
       return;
     }
 
-    const valeur = nouvelleValeur ? parseFloat(nouvelleValeur) : h.valeurExpertiseInitiale;
+    const valeur = nouvelleValeur ? parseFloat(nouvelleValeur) : Number(h.valeurExpertiseInitiale);
     const date = nouvelleDate ? new Date(nouvelleDate) : h.dateExpertise;
     const zone = nouvelleZone || h.zoneGeographique;
     const statut = nouveauStatut || h.statutOccupation;
 
-    const decotes = calculerDecotes(valeur, date, zone, statut, h.soldePret, h.natureBien);
+    const decotes = calculerDecotes(valeur, date, zone, statut, Number(h.soldePret), h.natureBien);
 
     // Save historical record
     const historique = await prisma.historiqueValeur.create({
@@ -362,8 +362,8 @@ export const revaloriser = async (req: AuthRequest, res: Response): Promise<void
     }
 
     const indice = parseFloat(indiceRevalorisation);
-    const nouvelleValeur = h.valeurExpertiseInitiale * (1 + indice / 100);
-    const decotes = calculerDecotes(nouvelleValeur, h.dateExpertise, h.zoneGeographique, h.statutOccupation, h.soldePret, h.natureBien);
+    const nouvelleValeur = Number(h.valeurExpertiseInitiale) * (1 + indice / 100);
+    const decotes = calculerDecotes(nouvelleValeur, h.dateExpertise, h.zoneGeographique, h.statutOccupation, Number(h.soldePret), h.natureBien);
 
     const historique = await prisma.historiqueValeur.create({
       data: {
@@ -432,13 +432,13 @@ export const importCSV = async (req: AuthRequest, res: Response): Promise<void> 
             nomClient: row.nomClient,
             numeroPret: row.numeroPret,
             numeroTitreFoncier: row.numeroTitreFoncier,
-            natureBien: row.natureBien,
+            natureBien: row.natureBien as NatureBien,
             ville: row.ville,
             quartier: row.quartier || null,
             lot: row.lot || null,
             ilot: row.ilot || null,
-            zoneGeographique: row.zoneGeographique,
-            statutOccupation: row.statutOccupation,
+            zoneGeographique: row.zoneGeographique as ZoneGeographique,
+            statutOccupation: row.statutOccupation as StatutOccupation,
             valeurExpertiseInitiale: parseFloat(row.valeurExpertiseInitiale),
             dateExpertise: new Date(row.dateExpertise),
             montantInscription: parseFloat(row.montantInscription),
@@ -491,8 +491,8 @@ export const exportCsv = async (req: AuthRequest, res: Response): Promise<void> 
 
     const rows = hypotheques.map((h) => {
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale, h.dateExpertise, h.zoneGeographique,
-        h.statutOccupation, h.soldePret, h.natureBien,
+        Number(h.valeurExpertiseInitiale), h.dateExpertise, h.zoneGeographique,
+        h.statutOccupation, Number(h.soldePret), h.natureBien,
       );
       let statut = 'OK';
       if (d.hasShortfall) statut = 'SHORTFALL';
@@ -549,8 +549,8 @@ export const exportExcel = async (req: AuthRequest, res: Response): Promise<void
 
     const sheetData = hypotheques.map((h) => {
       const d = calculerDecotes(
-        h.valeurExpertiseInitiale, h.dateExpertise, h.zoneGeographique,
-        h.statutOccupation, h.soldePret, h.natureBien,
+        Number(h.valeurExpertiseInitiale), h.dateExpertise, h.zoneGeographique,
+        h.statutOccupation, Number(h.soldePret), h.natureBien,
       );
       let statutCalc = 'OK';
       if (d.hasShortfall) statutCalc = 'SHORTFALL';

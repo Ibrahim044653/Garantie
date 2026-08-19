@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, AlertType } from '@prisma/client';
 import {
   calculerDecotes,
   getAgeExpertiseYears,
@@ -25,18 +25,18 @@ export async function generateAlerts(): Promise<void> {
     });
 
     const alerts: Array<{
-      type: string;
+      type: AlertType;
       message: string;
       dateEcheance?: Date;
     }> = [];
 
     const ageYears = getAgeExpertiseYears(h.dateExpertise);
     const decotes = calculerDecotes(
-      h.valeurExpertiseInitiale,
+      Number(h.valeurExpertiseInitiale),
       h.dateExpertise,
       h.zoneGeographique,
       h.statutOccupation,
-      h.soldePret,
+      Number(h.soldePret),
       h.natureBien,
     );
 
@@ -84,7 +84,7 @@ export async function generateAlerts(): Promise<void> {
 
     // 4. Shortfall (LTV > 100%)
     if (decotes.hasShortfall) {
-      const gap = (h.soldePret - decotes.valeurNetteCouverture).toLocaleString('fr-FR');
+      const gap = (Number(h.soldePret) - decotes.valeurNetteCouverture).toLocaleString('fr-FR');
       alerts.push({
         type: 'SHORTFALL',
         message: `Insuffisance de couverture pour ${h.nomClient} (${h.numeroPret}). Solde prêt dépasse la VNC de ${gap} FCFA. LTV: ${decotes.loanToValue.toFixed(1)}%.`,
