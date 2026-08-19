@@ -152,12 +152,17 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
     res.status(201).json(assurance);
   } catch (err) {
     logger.error('Assurance create error:', err);
+    const errCode = (err as { code?: string })?.code;
     const errMsg = err instanceof Error ? err.message : String(err);
-    if (errMsg.includes('Foreign key') || errMsg.includes('P2003')) {
+    if (errCode === 'P2003' || errMsg.toLowerCase().includes('foreign key')) {
       res.status(400).json({ error: 'Le prêt / client / hypothèque indiqué(e) n\'existe pas (ID introuvable)' });
       return;
     }
-    res.status(500).json({ error: 'Internal server error' });
+    if (errCode === 'P2002' || errMsg.toLowerCase().includes('unique constraint')) {
+      res.status(409).json({ error: 'Ce numéro de police existe déjà' });
+      return;
+    }
+    res.status(500).json({ error: errMsg.slice(0, 300) || 'Internal server error' });
   }
 };
 
