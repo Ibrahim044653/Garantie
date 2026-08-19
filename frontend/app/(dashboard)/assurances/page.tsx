@@ -362,8 +362,11 @@ export default function AssurancesPage() {
       ]);
       setAssurances(assRes.data?.data ?? assRes.data ?? []);
       setStats(statsRes.data?.data ?? statsRes.data ?? null);
-    } catch {
-      setError('Impossible de charger les assurances.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
+        || (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
+        || (err instanceof Error ? err.message : 'Impossible de charger les assurances.');
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -499,7 +502,7 @@ export default function AssurancesPage() {
                           {TYPE_LABELS[a.typeAssurance]}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">{a.nomClient || a.numeroPret || '—'}</td>
+                      <td className="px-4 py-3 text-slate-500 text-xs">{(a as any).client?.nom || (a as any).pret?.numeroPret || a.nomClient || a.numeroPret || '—'}</td>
                       <td className="px-4 py-3 text-right font-medium text-slate-800">{fmtMontant(a.montantAssure)}</td>
                       <td className="px-4 py-3 text-right text-slate-500">{a.primeMensuelle ? fmtMontant(a.primeMensuelle) : '—'}</td>
                       <td className="px-4 py-3 text-slate-500 text-xs">{fmtDate(a.dateFin)}</td>
@@ -546,7 +549,7 @@ export default function AssurancesPage() {
                                 Déclarer sinistre
                               </button>
                             </div>
-                            {a.sinistres?.length === 0 ? (
+                            {(a.sinistres ?? []).length === 0 ? (
                               <p className="text-xs text-slate-400">Aucun sinistre déclaré.</p>
                             ) : (
                               <table className="w-full text-xs">
@@ -559,7 +562,7 @@ export default function AssurancesPage() {
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                  {a.sinistres.map(s => (
+                                  {(a.sinistres ?? []).map(s => (
                                     <tr key={s.id}>
                                       <td className="py-1.5 pr-4 font-mono">{s.numeroDossier}</td>
                                       <td className="py-1.5 pr-4">{fmtDate(s.dateSurvenance)}</td>

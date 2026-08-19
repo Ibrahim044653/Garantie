@@ -40,9 +40,11 @@ interface GedDocument {
 
 interface GedStats {
   totalDocuments: number;
-  documentsActifs: number;
-  versionsTotales: number;
-  tailleTotale: number;
+  documentsActifs?: number;
+  versionsTotales?: number;
+  totalVersions?: number;
+  tailleTotale?: number;
+  totalSizeMB?: number;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -291,8 +293,11 @@ export default function GedPage() {
       ]);
       setDocs(docsRes.data?.data ?? docsRes.data ?? []);
       setStats(statsRes.data?.data ?? statsRes.data ?? null);
-    } catch {
-      setError('Impossible de charger les documents. Vérifiez la connexion au serveur.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
+        || (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
+        || (err instanceof Error ? err.message : 'Impossible de charger les documents.');
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -361,9 +366,9 @@ export default function GedPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'Total documents',   value: stats.totalDocuments,   color: 'text-slate-800' },
-            { label: 'Documents actifs',  value: stats.documentsActifs,  color: 'text-green-600' },
-            { label: 'Versions totales',  value: stats.versionsTotales,  color: 'text-blue-600' },
-            { label: 'Taille totale',     value: formatSize(stats.tailleTotale), color: 'text-indigo-600' },
+            { label: 'Documents actifs',  value: stats.documentsActifs ?? '—', color: 'text-green-600' },
+            { label: 'Versions totales',  value: stats.versionsTotales ?? stats.totalVersions ?? 0, color: 'text-blue-600' },
+            { label: 'Taille totale',     value: formatSize(stats.tailleTotale ?? (stats.totalSizeMB ? stats.totalSizeMB * 1024 * 1024 : 0)), color: 'text-indigo-600' },
           ].map(card => (
             <div key={card.label} className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
               <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">{card.label}</p>

@@ -245,8 +245,11 @@ export default function BiPage() {
         valeur: val as number | string,
       }));
       setKpis(kpisArray);
-    } catch {
-      setError('Impossible de charger le tableau de bord BI.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
+        || (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
+        || (err instanceof Error ? err.message : 'Impossible de charger le tableau de bord BI.');
+      setError(msg);
     } finally {
       setLoading(false);
     }

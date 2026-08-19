@@ -83,8 +83,11 @@ export default function ReportingBceaoPage() {
     try {
       const res = await reportingBceaoApi.ratios();
       setData(res.data?.data ?? res.data ?? {});
-    } catch {
-      setError('Impossible de charger le reporting BCEAO.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
+        || (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
+        || (err instanceof Error ? err.message : 'Impossible de charger le reporting BCEAO.');
+      setError(msg);
     } finally {
       setLoading(false);
     }
