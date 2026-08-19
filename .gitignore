@@ -8,9 +8,11 @@ backend/dist/
 frontend/.next/
 frontend/out/
 
-# Database (regenerated via seed)
-backend/prisma/hypotheque.db
-backend/prisma/hypotheque.db-journal
+# Database files (SQLite dev artifacts — production uses PostgreSQL on Railway)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
 
 # Uploads (fichiers utilisateurs)
 backend/uploads/

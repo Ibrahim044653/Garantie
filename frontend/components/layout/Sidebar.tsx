@@ -18,6 +18,9 @@ import {
   ShieldAlert,
   TrendingUp,
   FileText,
+  FolderOpen,
+  ShieldCheck,
+  PieChart,
 } from 'lucide-react';
 
 const navItems = [
@@ -67,6 +70,24 @@ const navItems = [
     href: '/reporting-bceao',
     label: 'Reporting BCEAO',
     icon: FileText,
+    exact: false,
+  },
+  {
+    href: '/ged',
+    label: 'Documents (GED)',
+    icon: FolderOpen,
+    exact: false,
+  },
+  {
+    href: '/assurances',
+    label: 'Assurances',
+    icon: ShieldCheck,
+    exact: false,
+  },
+  {
+    href: '/bi',
+    label: 'Dashboard BI',
+    icon: PieChart,
     exact: false,
   },
   {

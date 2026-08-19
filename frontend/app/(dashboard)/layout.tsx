@@ -17,6 +17,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/scoring': 'Scoring & Analyse de Risque',
   '/reporting-bceao': 'Reporting BCEAO',
   '/reporting': 'Reporting Annuel',
+  '/ged':        'GED — Documents',
+  '/assurances': 'Module Assurances',
+  '/bi':         'Tableau de bord BI',
   '/alertes': 'Alertes',
   '/admin/users': 'Gestion des Utilisateurs',
   '/profil': 'Mon Profil',
@@ -33,6 +36,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith('/provisions')) return 'Provisions IFRS 9 / BCEAO';
   if (pathname.startsWith('/scoring')) return 'Scoring & Analyse de Risque';
   if (pathname.startsWith('/reporting-bceao')) return 'Reporting BCEAO';
+  if (pathname.startsWith('/ged')) return 'GED — Documents';
+  if (pathname.startsWith('/assurances')) return 'Module Assurances';
+  if (pathname.startsWith('/bi')) return 'Tableau de bord BI';
   return 'Tableau de bord';
 }
 

@@ -119,8 +119,9 @@ model User {
   createdAt  DateTime @default(now()) @db.Timestamptz
   updatedAt  DateTime @updatedAt @db.Timestamptz
 
-  demandesCreees  DemandeValidation[] @relation("CreateurDemande")
-  etapesValidees  EtapeValidation[]   @relation("ValideurEtape")
+  demandesCreees   DemandeValidation[] @relation("CreateurDemande")
+  etapesValidees   EtapeValidation[]   @relation("ValideurEtape")
+  documentVersions DocumentVersion[]   @relation("VersionsUploaded")
 
   @@index([role])
 }
@@ -156,6 +157,8 @@ model Hypotheque {
   alertes    Alert[]
   client     Client?            @relation(fields: [clientId], references: [id])
   pret       Pret?              @relation(fields: [pretId], references: [id])
+  documents  Document[]         @relation("HypothequeDocuments")
+  assurances Assurance[]        @relation("HypothequeAssurances")
 
   @@unique([numeroTitreFoncier, rangHypotheque])
   @@index([nomClient])
@@ -232,6 +235,8 @@ model Client {
 
   prets       Pret[]
   hypotheques Hypotheque[]
+  documents   Document[]   @relation("ClientDocuments")
+  assurances  Assurance[]  @relation("ClientAssurances")
 
   @@index([nom])
   @@index([codeClient])
@@ -260,6 +265,8 @@ model Pret {
   client      Client         @relation(fields: [clientId], references: [id])
   echeances   EcheancePret[]
   hypotheques Hypotheque[]
+  documents   Document[]     @relation("PretDocuments")
+  assurances  Assurance[]    @relation("PretAssurances")
 
   @@index([clientId])
   @@index([statut])
@@ -336,4 +343,144 @@ model EtapeValidation {
   @@index([demandeId])
   @@index([statut])
   @@index([roleRequis])
+}
+
+// ─── GED — Gestion Électronique des Documents ─────────────────────────────────
+
+enum TypeDocument {
+  ACTE_PROPRIETE
+  RAPPORT_EXPERTISE
+  TITRE_FONCIER
+  MAINLEVEE
+  CONTRAT_PRET
+  ACCORD_CREDIT
+  POLICE_ASSURANCE
+  AVENANT_ASSURANCE
+  AUTRE
+}
+
+enum StatutDocument {
+  ACTIF
+  ARCHIVE
+  REJETE
+}
+
+model Document {
+  id              Int            @id @default(autoincrement())
+  titre           String
+  type            TypeDocument
+  description     String?
+  hypothequeId    Int?
+  pretId          Int?
+  clientId        Int?
+  statut          StatutDocument @default(ACTIF)
+  versionActuelle Int            @default(1)
+  tags            String?        // JSON array stored as string e.g. '["urgent","bceao"]'
+  createdAt       DateTime       @default(now()) @db.Timestamptz
+  updatedAt       DateTime       @updatedAt @db.Timestamptz
+
+  hypotheque Hypotheque?      @relation("HypothequeDocuments", fields: [hypothequeId], references: [id])
+  pret       Pret?            @relation("PretDocuments", fields: [pretId], references: [id])
+  client     Client?          @relation("ClientDocuments", fields: [clientId], references: [id])
+  versions   DocumentVersion[]
+
+  @@index([hypothequeId])
+  @@index([pretId])
+  @@index([clientId])
+  @@index([type])
+  @@index([statut])
+}
+
+model DocumentVersion {
+  id            Int      @id @default(autoincrement())
+  documentId    Int
+  numeroVersion Int
+  filePath      String
+  fileName      String
+  mimeType      String
+  taille        Int
+  commentaire   String?
+  uploadedById  Int
+  createdAt     DateTime @default(now()) @db.Timestamptz
+
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  uploadedBy User     @relation("VersionsUploaded", fields: [uploadedById], references: [id])
+
+  @@unique([documentId, numeroVersion])
+  @@index([documentId])
+}
+
+// ─── Module Assurances ────────────────────────────────────────────────────────
+
+enum TypeAssurance {
+  DECES_INVALIDITE
+  INCENDIE_CATASTROPHE
+  MULTIRISQUE_HABITATION
+  DEFAILLANCE_CREDIT
+  AUTRE
+}
+
+enum StatutAssurance {
+  ACTIVE
+  EXPIREE
+  RESILIEE
+  EN_ATTENTE
+}
+
+enum StatutSinistre {
+  DECLARE
+  EN_INSTRUCTION
+  ACCEPTE
+  REMBOURSE
+  REJETE
+}
+
+model Assurance {
+  id             Int             @id @default(autoincrement())
+  numeroPolice   String          @unique
+  compagnie      String
+  typeAssurance  TypeAssurance
+  pretId         Int?
+  clientId       Int?
+  hypothequeId   Int?
+  montantAssure  Decimal         @db.Decimal(18, 2)
+  primeMensuelle Decimal?        @db.Decimal(18, 2)
+  primeAnnuelle  Decimal?        @db.Decimal(18, 2)
+  dateDebut      DateTime        @db.Date
+  dateFin        DateTime        @db.Date
+  statut         StatutAssurance @default(ACTIVE)
+  beneficiaire   String?
+  notes          String?
+  createdAt      DateTime        @default(now()) @db.Timestamptz
+  updatedAt      DateTime        @updatedAt @db.Timestamptz
+
+  pret       Pret?       @relation("PretAssurances", fields: [pretId], references: [id])
+  client     Client?     @relation("ClientAssurances", fields: [clientId], references: [id])
+  hypotheque Hypotheque? @relation("HypothequeAssurances", fields: [hypothequeId], references: [id])
+  sinistres  Sinistre[]
+
+  @@index([pretId])
+  @@index([clientId])
+  @@index([hypothequeId])
+  @@index([statut])
+  @@index([dateFin])
+}
+
+model Sinistre {
+  id               Int            @id @default(autoincrement())
+  assuranceId      Int
+  dateDeclaration  DateTime       @db.Date
+  dateSinistre     DateTime?      @db.Date
+  montantDeclare   Decimal        @db.Decimal(18, 2)
+  montantRembourse Decimal?       @db.Decimal(18, 2)
+  statut           StatutSinistre @default(DECLARE)
+  description      String?
+  dateReglement    DateTime?      @db.Date
+  createdAt        DateTime       @default(now()) @db.Timestamptz
+  updatedAt        DateTime       @updatedAt @db.Timestamptz
+
+  assurance Assurance @relation(fields: [assuranceId], references: [id], onDelete: Cascade)
+
+  @@index([assuranceId])
+  @@index([statut])
 }

@@ -303,6 +303,192 @@ async function seedWorkflow() {
   demandes.forEach(d => console.log(`  - ${d}`));
 }
 
+// ─── 6. ASSURANCES & SINISTRES ────────────────────────────────────────────────
+
+async function seedAssurances() {
+  const prismaAny = prisma;
+
+  // Resolve pret IDs by numeroPret
+  const pretKeys = ['PRE2021001','PRE2020002','PRE2022003','PRE2021004','PRE2023005','PRE2019006','PRE2022007','PRE2023008','PRE2020009'];
+  const pretMap = {};
+  for (const num of pretKeys) {
+    const p = await prisma.pret.findUnique({ where: { numeroPret: num } });
+    if (p) pretMap[num] = p.id;
+  }
+
+  // Resolve client IDs
+  const clientKeys = ['CLI001','CLI002','CLI003','CLI004','CLI005','CLI006','CLI007','CLI008','CLI009'];
+  const clientMap = {};
+  for (const code of clientKeys) {
+    const c = await prisma.client.findUnique({ where: { codeClient: code } });
+    if (c) clientMap[code] = c.id;
+  }
+
+  const assuranceDefs = [
+    {
+      numeroPolice: 'POL-SANLAM-2021001',
+      compagnie: 'SANLAM Assurances',
+      typeAssurance: 'DECES_INVALIDITE',
+      pretId: pretMap['PRE2021001'] || null,
+      clientId: clientMap['CLI001'] || null,
+      montantAssure: 250000000,
+      primeMensuelle: 208333,
+      dateDebut: new Date('2021-01-15'),
+      dateFin: new Date('2036-01-15'),
+      statut: 'ACTIVE',
+    },
+    {
+      numeroPolice: 'POL-NSIA-2020002',
+      compagnie: 'NSIA Assurances',
+      typeAssurance: 'DECES_INVALIDITE',
+      pretId: pretMap['PRE2020002'] || null,
+      clientId: clientMap['CLI002'] || null,
+      montantAssure: 160000000,
+      primeMensuelle: 133333,
+      dateDebut: new Date('2020-06-01'),
+      dateFin: new Date('2027-06-01'),
+      statut: 'ACTIVE',
+    },
+    {
+      numeroPolice: 'POL-SAHAM-2022003',
+      compagnie: 'SAHAM Assurances',
+      typeAssurance: 'MULTIRISQUE_HABITATION',
+      pretId: pretMap['PRE2022003'] || null,
+      clientId: clientMap['CLI003'] || null,
+      montantAssure: 350000000,
+      primeMensuelle: 291667,
+      dateDebut: new Date('2022-03-01'),
+      dateFin: new Date('2032-03-01'),
+      statut: 'ACTIVE',
+    },
+    {
+      numeroPolice: 'POL-ALLIANZ-2021004',
+      compagnie: 'Allianz Sénégal',
+      typeAssurance: 'DECES_INVALIDITE',
+      pretId: pretMap['PRE2021004'] || null,
+      clientId: clientMap['CLI004'] || null,
+      montantAssure: 42000000,
+      primeMensuelle: 35000,
+      dateDebut: new Date('2021-09-01'),
+      dateFin: new Date('2026-09-01'), // expires ~1 month from now (alerte!)
+      statut: 'ACTIVE',
+    },
+    {
+      numeroPolice: 'POL-SANLAM-2023005',
+      compagnie: 'SANLAM Assurances',
+      typeAssurance: 'MULTIRISQUE_HABITATION',
+      pretId: pretMap['PRE2023005'] || null,
+      clientId: clientMap['CLI005'] || null,
+      montantAssure: 420000000,
+      primeMensuelle: 350000,
+      dateDebut: new Date('2023-01-01'),
+      dateFin: new Date('2043-01-01'),
+      statut: 'ACTIVE',
+    },
+    {
+      numeroPolice: 'POL-NSIA-2019006',
+      compagnie: 'NSIA Assurances',
+      typeAssurance: 'DECES_INVALIDITE',
+      pretId: pretMap['PRE2019006'] || null,
+      clientId: clientMap['CLI006'] || null,
+      montantAssure: 90000000,
+      primeMensuelle: 75000,
+      dateDebut: new Date('2019-03-01'),
+      dateFin: new Date('2024-03-01'),
+      statut: 'EXPIREE',
+    },
+    {
+      numeroPolice: 'POL-AXA-2022007',
+      compagnie: 'AXA Sénégal',
+      typeAssurance: 'INCENDIE_CATASTROPHE',
+      pretId: pretMap['PRE2022007'] || null,
+      clientId: clientMap['CLI007'] || null,
+      montantAssure: 220000000,
+      primeMensuelle: 183333,
+      dateDebut: new Date('2022-06-01'),
+      dateFin: new Date('2032-06-01'),
+      statut: 'ACTIVE',
+    },
+    {
+      numeroPolice: 'POL-NSIA-2023008',
+      compagnie: 'NSIA Assurances',
+      typeAssurance: 'DECES_INVALIDITE',
+      pretId: pretMap['PRE2023008'] || null,
+      clientId: clientMap['CLI008'] || null,
+      montantAssure: 130000000,
+      primeMensuelle: 108333,
+      dateDebut: new Date('2023-06-01'),
+      dateFin: new Date('2030-06-01'),
+      statut: 'ACTIVE',
+    },
+  ];
+
+  let assCount = 0;
+  const createdAssurances = {};
+  for (const def of assuranceDefs) {
+    try {
+      const ass = await prismaAny.assurance.upsert({
+        where: { numeroPolice: def.numeroPolice },
+        update: {},
+        create: def,
+      });
+      createdAssurances[def.numeroPolice] = ass.id;
+      assCount++;
+    } catch (e) {
+      console.warn(`  Warning: could not upsert assurance ${def.numeroPolice}:`, e.message);
+    }
+  }
+  console.log(`Seed: ${assCount} assurances upserted`);
+
+  // Sinistres
+  let sinCount = 0;
+  const ass3 = createdAssurances['POL-SAHAM-2022003'];
+  if (ass3) {
+    try {
+      await prismaAny.sinistre.create({
+        data: {
+          assuranceId: ass3,
+          dateDeclaration: new Date('2025-03-15'),
+          dateSinistre: new Date('2025-03-10'),
+          montantDeclare: 45000000,
+          statut: 'REMBOURSE',
+          montantRembourse: 43000000,
+          dateReglement: new Date('2025-05-20'),
+          description: 'Dégâts incendie partiel — aile nord usine Batibuild',
+        },
+      });
+      sinCount++;
+    } catch (e) {
+      console.warn('  Warning: sinistre 1 skipped:', e.message);
+    }
+  }
+
+  // Sinistre 2 on CLI009 / PRE2020009
+  const ass9Key = 'POL-NSIA-2023008'; // PRE2020009 has no policy — use CLI009 if available via separate lookup
+  const pret9 = await prisma.pret.findUnique({ where: { numeroPret: 'PRE2020009' } });
+  if (pret9) {
+    // Find assurance linked to pret9 if any
+    const ass9 = await prismaAny.assurance.findFirst({ where: { pretId: pret9.id } });
+    if (ass9) {
+      try {
+        await prismaAny.sinistre.create({
+          data: {
+            assuranceId: ass9.id,
+            dateDeclaration: new Date('2026-01-10'),
+            montantDeclare: 80000000,
+            statut: 'EN_INSTRUCTION',
+            description: 'Sinistre déclaré — dossier en cours d\'instruction',
+          },
+        });
+        sinCount++;
+      } catch (e) {
+        console.warn('  Warning: sinistre 2 skipped:', e.message);
+      }
+    }
+  }
+  console.log(`Seed: ${sinCount} sinistres created`);
+}
+
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -312,6 +498,7 @@ async function main() {
   await seedClients();
   await seedPrets();
   await seedWorkflow();
+  await seedAssurances();
   console.log('\n=== Seed terminé avec succès ===\n');
 }
 

@@ -16,6 +16,9 @@ import { workflowRouter } from './routes/workflow.routes';
 import { provisionRouter } from './routes/provision.routes';
 import { scoringRouter } from './routes/scoring.routes';
 import { reportingBceaoRouter } from './routes/reporting-bceao.routes';
+import { gedRouter } from './routes/ged.routes';
+import { assuranceRouter } from './routes/assurance.routes';
+import { biRouter } from './routes/bi.routes';
 import { generateAlerts } from './services/alert.service';
 
 const app = express();
@@ -68,6 +71,9 @@ app.use('/api/workflow', workflowRouter);
 app.use('/api/provisions', provisionRouter);
 app.use('/api/scoring', scoringRouter);
 app.use('/api/reporting-bceao', reportingBceaoRouter);
+app.use('/api/ged', gedRouter);
+app.use('/api/assurances', assuranceRouter);
+app.use('/api/bi', biRouter);
 
 // 404 handler
 app.use((_req, res) => {

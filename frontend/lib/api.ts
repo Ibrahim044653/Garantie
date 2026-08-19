@@ -168,6 +168,36 @@ export const reportingBceaoApi = {
   export: () => apiClient.get('/reporting-bceao/export', { responseType: 'blob' }),
 };
 
+// ---------- GED ----------
+export const gedApi = {
+  list:       (params?: Record<string, unknown>) => apiClient.get('/ged', { params }),
+  getById:    (id: number | string) => apiClient.get(`/ged/${id}`),
+  stats:      () => apiClient.get('/ged/stats'),
+  upload:     (formData: FormData) => apiClient.post('/ged', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  addVersion: (id: number | string, formData: FormData) => apiClient.post(`/ged/${id}/versions`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  archive:    (id: number | string) => apiClient.put(`/ged/${id}/archive`),
+  download:   (id: number | string) => apiClient.get(`/ged/${id}/download`, { responseType: 'blob' }),
+};
+
+// ---------- Assurances ----------
+export const assurancesApi = {
+  list:           (params?: Record<string, unknown>) => apiClient.get('/assurances', { params }),
+  getById:        (id: number | string) => apiClient.get(`/assurances/${id}`),
+  stats:          () => apiClient.get('/assurances/stats'),
+  alertes:        () => apiClient.get('/assurances/alertes'),
+  create:         (data: unknown) => apiClient.post('/assurances', data),
+  update:         (id: number | string, data: unknown) => apiClient.put(`/assurances/${id}`, data),
+  createSinistre: (id: number | string, data: unknown) => apiClient.post(`/assurances/${id}/sinistres`, data),
+  updateSinistre: (assId: number | string, sinId: number | string, data: unknown) => apiClient.put(`/assurances/${assId}/sinistres/${sinId}`, data),
+};
+
+// ---------- BI Dashboard ----------
+export const biApi = {
+  overview:    () => apiClient.get('/bi/overview'),
+  comparaison: (periode1: string, periode2: string) => apiClient.get('/bi/comparaison', { params: { periode1, periode2 } }),
+  kpis:        () => apiClient.get('/bi/kpis'),
+};
+
 // Helper to trigger CSV file download
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
