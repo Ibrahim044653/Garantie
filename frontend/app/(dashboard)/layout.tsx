@@ -10,6 +10,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Tableau de bord',
   '/hypotheques': 'Liste des Hypothèques',
   '/hypotheques/new': 'Nouvelle Hypothèque',
+  '/clients': 'Gestion des Clients',
+  '/prets': 'Gestion des Prêts',
+  '/workflow': 'Workflow de Validation',
   '/reporting': 'Reporting Annuel',
   '/alertes': 'Alertes',
   '/admin/users': 'Gestion des Utilisateurs',
@@ -22,6 +25,8 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith('/hypotheques/') && pathname.endsWith('/edit'))
     return 'Modifier Hypothèque';
   if (pathname.startsWith('/hypotheques/')) return 'Fiche Hypothèque';
+  if (pathname.startsWith('/clients/')) return 'Fiche Client';
+  if (pathname.startsWith('/prets/')) return 'Détail Prêt';
   return 'Tableau de bord';
 }
 

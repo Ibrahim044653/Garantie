@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Landmark,
   UserCircle,
+  CreditCard,
+  GitBranch,
 } from 'lucide-react';
 
 const navItems = [
@@ -26,6 +28,24 @@ const navItems = [
     href: '/hypotheques',
     label: 'Hypothèques',
     icon: Building2,
+    exact: false,
+  },
+  {
+    href: '/clients',
+    label: 'Clients',
+    icon: Users,
+    exact: false,
+  },
+  {
+    href: '/prets',
+    label: 'Prêts',
+    icon: CreditCard,
+    exact: false,
+  },
+  {
+    href: '/workflow',
+    label: 'Workflow',
+    icon: GitBranch,
     exact: false,
   },
   {

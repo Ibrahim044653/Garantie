@@ -10,6 +10,9 @@ import { dashboardRouter } from './routes/dashboard.routes';
 import { reportingRouter } from './routes/reporting.routes';
 import { userRouter } from './routes/user.routes';
 import { alerteRouter } from './routes/alerte.routes';
+import { clientRouter } from './routes/client.routes';
+import { pretRouter } from './routes/pret.routes';
+import { workflowRouter } from './routes/workflow.routes';
 import { generateAlerts } from './services/alert.service';
 
 const app = express();
@@ -56,6 +59,9 @@ app.use('/api/reporting', reportingRouter);
 app.use('/api/users', userRouter);
 app.use('/api/admin/users', userRouter);
 app.use('/api/alertes', alerteRouter);
+app.use('/api/clients', clientRouter);
+app.use('/api/prets', pretRouter);
+app.use('/api/workflow', workflowRouter);
 
 // 404 handler
 app.use((_req, res) => {

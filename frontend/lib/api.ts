@@ -112,6 +112,44 @@ export const usersApi = {
   delete: (id: number) => apiClient.delete(`/users/${id}`),
 };
 
+// ---------- Clients (CRM) ----------
+export const clientsApi = {
+  list: (params?: Record<string, unknown>) =>
+    apiClient.get('/clients', { params }),
+  getById: (id: number | string) => apiClient.get(`/clients/${id}`),
+  create: (data: unknown) => apiClient.post('/clients', data),
+  update: (id: number | string, data: unknown) =>
+    apiClient.put(`/clients/${id}`, data),
+  delete: (id: number | string) => apiClient.delete(`/clients/${id}`),
+  stats: () => apiClient.get('/clients/stats'),
+};
+
+// ---------- Prêts ----------
+export const pretsApi = {
+  list: (params?: Record<string, unknown>) =>
+    apiClient.get('/prets', { params }),
+  getById: (id: number | string) => apiClient.get(`/prets/${id}`),
+  create: (data: unknown) => apiClient.post('/prets', data),
+  update: (id: number | string, data: unknown) =>
+    apiClient.put(`/prets/${id}`, data),
+  getEcheances: (id: number | string) =>
+    apiClient.get(`/prets/${id}/echeances`),
+  enregistrerPaiement: (id: number | string, data: unknown) =>
+    apiClient.post(`/prets/${id}/paiements`, data),
+  stats: () => apiClient.get('/prets/stats'),
+};
+
+// ---------- Workflow ----------
+export const workflowApi = {
+  list: (params?: Record<string, unknown>) =>
+    apiClient.get('/workflow', { params }),
+  getById: (id: number | string) => apiClient.get(`/workflow/${id}`),
+  create: (data: unknown) => apiClient.post('/workflow', data),
+  valider: (id: number | string, data: unknown) =>
+    apiClient.post(`/workflow/${id}/valider`, data),
+  mesDemandes: () => apiClient.get('/workflow/mes-demandes'),
+};
+
 // Helper to trigger CSV file download
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
