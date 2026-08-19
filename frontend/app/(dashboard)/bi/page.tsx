@@ -333,8 +333,9 @@ export default function BiPage() {
                   tickFormatter={(v: number) => `${v}M`}
                 />
                 <Tooltip
-                  formatter={(value: number, name: string) => [
-                    `${value} M FCFA`,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  formatter={(value: any, name: any) => [
+                    `${Number(value).toFixed(1)} M FCFA`,
                     name === 'vncM' ? 'VNC' : 'Encours',
                   ]}
                   contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
@@ -376,7 +377,8 @@ export default function BiPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number, name: string) => [value, CLASS_LABELS[name] ?? name]}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    formatter={(value: any, name: any) => [value, CLASS_LABELS[name as string] ?? name]}
                     contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
                   />
                 </PieChart>
