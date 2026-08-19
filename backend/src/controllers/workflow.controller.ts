@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { logger } from '../services/logger';
 
@@ -67,7 +67,7 @@ export const getMesDemandes = async (req: AuthRequest, res: Response): Promise<v
         statut: { in: ['EN_ATTENTE', 'EN_COURS'] },
         etapes: {
           some: {
-            roleRequis: userRole,
+            roleRequis: userRole as UserRole,
             statut: 'EN_ATTENTE',
           },
         },
