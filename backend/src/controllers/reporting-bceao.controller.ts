@@ -338,7 +338,7 @@ export const getRatios = async (req: AuthRequest, res: Response): Promise<void> 
         provisions: r.provisionsTotalFCFA,
       },
       ratiosPrudentiels: r.ratiosPrudentiels,
-      grandsRisques: r.grandsRisques,
+      grandsRisques: r.grandsRisques.filter((g) => g.depasseSeuil),
       concentration: r.concentration,
       etatSYSCOHADA: r.etatSYSCOHADA,
     });

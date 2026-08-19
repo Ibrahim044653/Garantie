@@ -53,6 +53,10 @@ function fmtFCFA(n: number): string {
 function fmtPct(n: number, decimals = 1): string {
   return n.toFixed(decimals) + ' %';
 }
+// PD and LGD come as 0-1 fractions from the API — multiply by 100 for display
+function fmtFraction(n: number, decimals = 1): string {
+  return (n * 100).toFixed(decimals) + ' %';
+}
 
 const NIVEAUX: Niveau[] = ['AAA', 'BBB', 'BB', 'B', 'CCC'];
 
@@ -148,11 +152,11 @@ export default function ScoringPage() {
         </div>
         <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">PD moyen portefeuille</p>
-          <p className="text-2xl font-bold text-orange-600 mt-1">{fmtPct(pdMoyen, 1)}</p>
+          <p className="text-2xl font-bold text-orange-600 mt-1">{fmtFraction(pdMoyen, 1)}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">LGD moyen</p>
-          <p className="text-2xl font-bold text-amber-600 mt-1">{fmtPct(lgdMoyen, 1)}</p>
+          <p className="text-2xl font-bold text-amber-600 mt-1">{fmtFraction(lgdMoyen, 1)}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Expected Loss total</p>
@@ -283,8 +287,8 @@ export default function ScoringPage() {
                           {row.niveau}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-600">{fmtPct(row.pd, 1)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-600">{fmtPct(row.lgd, 1)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-slate-600">{fmtFraction(row.pd, 1)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-slate-600">{fmtFraction(row.lgd, 1)}</td>
                       <td className="px-4 py-3 text-right tabular-nums text-slate-700">{(row.ead / 1_000_000).toFixed(2)}</td>
                       <td className="px-4 py-3 text-right tabular-nums font-semibold text-red-700">{fmtFCFA(row.expectedLoss)}</td>
                       <td className="px-4 py-3 text-right tabular-nums text-slate-600">{fmtPct(row.ltv, 1)}</td>
