@@ -13,10 +13,11 @@ const prisma = new PrismaClient();
  * Generate alerts for all hypothèques.
  * - Clears existing unread alerts for a hypotheque before regenerating.
  */
-export async function generateAlerts(): Promise<void> {
+export async function generateAlerts(): Promise<Array<{ type: string; hypotheque: any }>> {
   const hypotheques = await prisma.hypotheque.findMany();
   const today = new Date();
   let created = 0;
+  const triggeredNotifications: Array<{ type: string; hypotheque: any }> = [];
 
   for (const h of hypotheques) {
     // Delete existing unread alerts for this hypotheque to avoid duplicates
@@ -103,8 +104,12 @@ export async function generateAlerts(): Promise<void> {
         })),
       });
       created += alerts.length;
+      for (const a of alerts) {
+        triggeredNotifications.push({ type: a.type, hypotheque: h });
+      }
     }
   }
 
   logger.info(`Alert generation: ${created} alerts created for ${hypotheques.length} hypothèques`);
+  return triggeredNotifications;
 }

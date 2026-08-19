@@ -21,6 +21,12 @@ import {
   FolderOpen,
   ShieldCheck,
   PieChart,
+  Award,
+  Map,
+  Unlock,
+  AlertOctagon,
+  ClipboardList,
+  Upload,
 } from 'lucide-react';
 
 const navItems = [
@@ -34,6 +40,12 @@ const navItems = [
     href: '/hypotheques',
     label: 'Hypothèques',
     icon: Building2,
+    exact: false,
+  },
+  {
+    href: '/carte',
+    label: 'Carte des biens',
+    icon: Map,
     exact: false,
   },
   {
@@ -73,6 +85,12 @@ const navItems = [
     exact: false,
   },
   {
+    href: '/rapports',
+    label: 'Rapports PDF',
+    icon: FileText,
+    exact: false,
+  },
+  {
     href: '/ged',
     label: 'Documents (GED)',
     icon: FolderOpen,
@@ -102,6 +120,43 @@ const navItems = [
     icon: Bell,
     exact: false,
   },
+  {
+    href: '/mainlevees',
+    label: 'Mainlevées',
+    icon: Unlock,
+    exact: false,
+    roles: null, // visible to all
+  },
+];
+
+const recouvrementItems = [
+  {
+    href: '/recouvrement',
+    label: 'Recouvrement',
+    icon: AlertOctagon,
+    exact: false,
+    roles: ['ADMIN', 'GESTIONNAIRE_GARANTIES', 'RESPONSABLE_RISQUES', 'ENGAGEMENTS'],
+  },
+];
+
+const auditItems = [
+  {
+    href: '/audit',
+    label: "Journal d'audit",
+    icon: ClipboardList,
+    exact: false,
+    roles: ['ADMIN', 'AUDIT_INTERNE'],
+  },
+];
+
+const importItems = [
+  {
+    href: '/import',
+    label: 'Import en masse',
+    icon: Upload,
+    exact: false,
+    roles: ['ADMIN', 'GESTIONNAIRE_GARANTIES'],
+  },
 ];
 
 const adminItems = [
@@ -109,6 +164,12 @@ const adminItems = [
     href: '/admin/users',
     label: 'Utilisateurs',
     icon: Users,
+    exact: false,
+  },
+  {
+    href: '/admin/experts',
+    label: 'Experts agréés',
+    icon: Award,
     exact: false,
   },
 ];
@@ -127,7 +188,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-40 bg-black/50 dark:bg-black/70 md:hidden"
           onClick={onClose}
         />
       )}
@@ -171,6 +232,63 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           Menu principal
         </p>
         {navItems.map((item) => {
+          const active = isActive(item.href, item.exact);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={`sidebar-link ${active ? 'active' : ''}`}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1">{item.label}</span>
+              {active && <ChevronRight className="w-3 h-3" />}
+            </Link>
+          );
+        })}
+
+        {/* Recouvrement — rôles restreints */}
+        {recouvrementItems.map((item) => {
+          if (!hasRole(...(item.roles as Parameters<typeof hasRole>))) return null;
+          const active = isActive(item.href, item.exact);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={`sidebar-link ${active ? 'active' : ''}`}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1">{item.label}</span>
+              {active && <ChevronRight className="w-3 h-3" />}
+            </Link>
+          );
+        })}
+
+        {/* Journal d'audit — ADMIN + AUDIT_INTERNE */}
+        {auditItems.map((item) => {
+          if (!hasRole(...(item.roles as Parameters<typeof hasRole>))) return null;
+          const active = isActive(item.href, item.exact);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={`sidebar-link ${active ? 'active' : ''}`}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1">{item.label}</span>
+              {active && <ChevronRight className="w-3 h-3" />}
+            </Link>
+          );
+        })}
+
+        {/* Import en masse — ADMIN + GESTIONNAIRE_GARANTIES */}
+        {importItems.map((item) => {
+          if (!hasRole(...(item.roles as Parameters<typeof hasRole>))) return null;
           const active = isActive(item.href, item.exact);
           const Icon = item.icon;
           return (

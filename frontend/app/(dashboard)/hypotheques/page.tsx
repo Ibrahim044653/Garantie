@@ -17,6 +17,8 @@ import { hypothequesApi, downloadBlob } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatFCFA, formatDate, NATURE_LABELS, ZONE_LABELS } from '@/lib/format';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { FilterPresetBar } from '@/components/shared/FilterPresetBar';
+import { QuickViews } from '@/components/shared/QuickViews';
 import type {
   Hypotheque,
   NatureBien,
@@ -30,6 +32,7 @@ const PAGE_SIZE = 15;
 
 export default function HypothequesPage() {
   const { canEdit } = useAuth();
+  const [quickViewId, setQuickViewId] = useState('all');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -70,6 +73,14 @@ export default function HypothequesPage() {
     fetchData();
   }, [fetchData]);
 
+  function applyFilters(filters: Record<string, string | boolean | number | undefined>) {
+    setSearch((filters.search as string) ?? '');
+    setZone((filters.zone as string) ?? '');
+    setNature((filters.nature as string) ?? '');
+    setStatut((filters.statut as string) ?? '');
+    setPage(1);
+  }
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
@@ -105,6 +116,23 @@ export default function HypothequesPage() {
 
   return (
     <div className="space-y-4">
+      {/* Vues rapides */}
+      <QuickViews
+        activeId={quickViewId}
+        onSelect={(filters, id) => {
+          setQuickViewId(id);
+          applyFilters(filters);
+          fetchData();
+        }}
+      />
+
+      {/* Filtres sauvegardés */}
+      <FilterPresetBar
+        entity="hypotheques"
+        currentFilters={{ search, zone, nature, statut, occupation, alerte }}
+        onApply={(f) => { applyFilters(f); fetchData(); }}
+      />
+
       {/* Toolbar */}
       <div className="card p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:flex-wrap">

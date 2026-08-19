@@ -104,12 +104,12 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8">
           {!mfaStep ? (
             <>
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-slate-800">Connexion</h2>
-                <p className="text-slate-500 text-sm">
+                <h2 className="text-xl font-semibold text-slate-800 dark:text-white">Connexion</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">
                   Accédez à votre espace de gestion
                 </p>
               </div>
@@ -191,11 +191,11 @@ export default function LoginPage() {
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
                     <ShieldCheck className="w-5 h-5 text-blue-600" />
                   </div>
-                  <h2 className="text-xl font-semibold text-slate-800">
+                  <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
                     Vérification MFA
                   </h2>
                 </div>
-                <p className="text-slate-500 text-sm">
+                <p className="text-slate-500 dark:text-slate-400 text-sm">
                   Saisissez le code à 6 chiffres de votre application d&apos;authentification.
                 </p>
               </div>
@@ -253,7 +253,7 @@ export default function LoginPage() {
             </>
           )}
 
-          <p className="text-center text-xs text-slate-400 mt-6">
+          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
             En vous connectant, vous acceptez les conditions d&apos;utilisation de la
             plateforme bancaire.
           </p>

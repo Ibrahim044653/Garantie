@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { mfaApi } from '@/lib/api';
+import { mfaApi, apiClient } from '@/lib/api';
 import { ROLE_LABELS } from '@/lib/format';
 import {
   User,
@@ -12,6 +12,8 @@ import {
   AlertCircle,
   Check,
   X,
+  Bell,
+  BellOff,
 } from 'lucide-react';
 
 export default function ProfilPage() {
@@ -107,6 +109,52 @@ export default function ProfilPage() {
       setDisableLoading(false);
     }
   };
+
+  // Push notifications
+  const [pushStatus, setPushStatus] = useState<'idle' | 'loading' | 'active' | 'denied' | 'error'>('idle');
+  const [pushError, setPushError] = useState('');
+
+  const handleSubscribePush = async () => {
+    setPushError('');
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setPushError('Votre navigateur ne supporte pas les notifications push.');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'denied') {
+      setPushStatus('denied');
+      return;
+    }
+    if (permission !== 'granted') return;
+    setPushStatus('loading');
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidKey) throw new Error('Clé VAPID manquante');
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+      await apiClient.post('/notifications/push-subscribe', subscription.toJSON());
+      setPushStatus('active');
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        (err instanceof Error ? err.message : 'Erreur lors de l\'activation');
+      setPushError(msg);
+      setPushStatus('error');
+    }
+  };
+
+  function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const arr = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; i++) arr[i] = rawData.charCodeAt(i);
+    return arr.buffer as ArrayBuffer;
+  }
 
   if (!user) return null;
 
@@ -342,6 +390,71 @@ export default function ProfilPage() {
               Désactiver le MFA
             </button>
           </div>
+        )}
+      </div>
+
+      {/* Push Notifications */}
+      <div className="card p-6">
+        <h3 className="font-semibold text-slate-800 mb-1 flex items-center gap-2">
+          <Bell className="w-4 h-4 text-blue-600" />
+          Notifications Push
+        </h3>
+        <p className="text-sm text-slate-500 mb-5">
+          Recevez des alertes en temps réel directement dans votre navigateur, même lorsque l&apos;application est fermée.
+        </p>
+
+        {pushError && (
+          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-600">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            {pushError}
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200 mb-4">
+          {pushStatus === 'active' ? (
+            <>
+              <Bell className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-green-700">Notifications push activées</p>
+                <p className="text-xs text-slate-500">Vous recevrez des alertes en temps réel.</p>
+              </div>
+            </>
+          ) : pushStatus === 'denied' ? (
+            <>
+              <BellOff className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-red-700">Permission refusée</p>
+                <p className="text-xs text-slate-500">
+                  Autorisez les notifications dans les paramètres de votre navigateur.
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <BellOff className="w-5 h-5 text-amber-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-amber-700">Notifications push désactivées</p>
+                <p className="text-xs text-slate-500">
+                  Activez les notifications pour rester informé en temps réel.
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+
+        {pushStatus !== 'active' && pushStatus !== 'denied' && (
+          <button
+            onClick={handleSubscribePush}
+            disabled={pushStatus === 'loading'}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 disabled:bg-blue-400"
+          >
+            {pushStatus === 'loading' ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Bell className="w-4 h-4" />
+            )}
+            {pushStatus === 'loading' ? 'Activation...' : 'Activer les notifications push'}
+          </button>
         )}
       </div>
 

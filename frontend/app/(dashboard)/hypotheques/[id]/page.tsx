@@ -13,8 +13,10 @@ import {
   Clock,
   X,
   TrendingUp,
+  FileText,
 } from 'lucide-react';
 import { hypothequesApi } from '@/lib/api';
+import { exportHypothequeSheet } from '@/lib/pdf-export';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   formatFCFA,
@@ -173,6 +175,13 @@ export default function HypothequePage({
             </span>
           )}
           <button
+            onClick={() => exportHypothequeSheet(hyp, alertes)}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+          >
+            <FileText className="w-4 h-4" />
+            Exporter PDF
+          </button>
+          <button
             onClick={openHistorique}
             className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-100"
           >
@@ -188,6 +197,13 @@ export default function HypothequePage({
                 <TrendingUp className="w-4 h-4" />
                 Revaloriser
               </button>
+              <Link
+                href={`/hypotheques/${id}/reevaluation`}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-emerald-300 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50"
+              >
+                <TrendingUp className="w-4 h-4" />
+                Réévaluer
+              </Link>
               <Link
                 href={`/hypotheques/${id}/edit`}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-700 text-white rounded-lg text-sm hover:bg-blue-800"

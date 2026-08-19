@@ -30,6 +30,8 @@ const schema = z.object({
   datePeremptionInscription: z.string().min(1, 'Date péremption requise'),
   soldePret: z.coerce.number().positive('Solde prêt requis'),
   dateEcheancePret: z.string().optional(),
+  latitude: z.preprocess(v => v === '' || v === undefined || v === null ? undefined : Number(v), z.number().min(-90).max(90).optional()),
+  longitude: z.preprocess(v => v === '' || v === undefined || v === null ? undefined : Number(v), z.number().min(-180).max(180).optional()),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,7 +42,7 @@ interface Props {
 
 const STEPS = [
   { id: 1, title: 'Identification', fields: ['codeClient','nomClient','numeroPret','numeroTitreFoncier','natureBien'] },
-  { id: 2, title: 'Localisation', fields: ['ville','quartier','lot','ilot','zoneGeographique','statutOccupation'] },
+  { id: 2, title: 'Localisation', fields: ['ville','quartier','lot','ilot','zoneGeographique','statutOccupation','latitude','longitude'] },
   { id: 3, title: 'Valeurs', fields: ['valeurExpertiseInitiale','dateExpertise','montantInscription','rangHypotheque','datePeremptionInscription','soldePret','dateEcheancePret'] },
 ];
 
@@ -95,6 +97,8 @@ export default function HypothequeForm({ initial }: Props) {
         datePeremptionInscription: initial.datePeremptionInscription?.slice(0, 10),
         soldePret: initial.soldePret,
         dateEcheancePret: initial.dateEcheancePret?.slice(0, 10),
+        latitude: (initial as unknown as { latitude?: number }).latitude ?? undefined,
+        longitude: (initial as unknown as { longitude?: number }).longitude ?? undefined,
       }
     : { rangHypotheque: 1, zoneGeographique: 'ZONE_A', natureBien: 'VILLA', statutOccupation: 'OCCUPE_PROPRIETAIRE' };
 
@@ -242,6 +246,32 @@ export default function HypothequeForm({ initial }: Props) {
                   <option value="LOUE_AVEC_BAIL">Loué avec bail (décote 15%)</option>
                 </select>
               </Field>
+            </div>
+            <div className="pt-2 border-t border-slate-100">
+              <p className="text-xs text-slate-500 mb-3 flex items-center gap-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-400" />
+                Coordonnées GPS — optionnelles, utilisées pour la carte des biens
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Latitude" error={errors.latitude?.message}>
+                  <input
+                    {...register('latitude')}
+                    type="number"
+                    step="any"
+                    className="form-input"
+                    placeholder="14.6928"
+                  />
+                </Field>
+                <Field label="Longitude" error={errors.longitude?.message}>
+                  <input
+                    {...register('longitude')}
+                    type="number"
+                    step="any"
+                    className="form-input"
+                    placeholder="-17.4467"
+                  />
+                </Field>
+              </div>
             </div>
           </div>
         )}

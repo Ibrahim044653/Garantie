@@ -5,6 +5,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import dynamic from 'next/dynamic';
+
+const GlobalSearch = dynamic(
+  () => import('@/components/search/GlobalSearch'),
+  { ssr: false }
+);
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Tableau de bord',
@@ -21,6 +27,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/assurances': 'Module Assurances',
   '/bi':         'Tableau de bord BI',
   '/alertes': 'Alertes',
+  '/carte': 'Carte des biens',
   '/admin/users': 'Gestion des Utilisateurs',
   '/profil': 'Mon Profil',
 };
@@ -39,6 +46,7 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith('/ged')) return 'GED — Documents';
   if (pathname.startsWith('/assurances')) return 'Module Assurances';
   if (pathname.startsWith('/bi')) return 'Tableau de bord BI';
+  if (pathname.startsWith('/carte')) return 'Carte des biens';
   return 'Tableau de bord';
 }
 
@@ -60,7 +68,7 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
           <p className="text-slate-500 text-sm">Chargement...</p>
@@ -72,12 +80,13 @@ export default function DashboardLayout({
   if (!isAuthenticated) return null;
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen bg-slate-100 dark:bg-slate-950">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header title={getTitle(pathname)} onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 p-3 md:p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-3 md:p-6 overflow-auto dark:bg-slate-950">{children}</main>
       </div>
+      <GlobalSearch />
     </div>
   );
 }

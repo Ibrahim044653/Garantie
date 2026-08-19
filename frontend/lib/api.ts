@@ -198,6 +198,38 @@ export const biApi = {
   kpis:        () => apiClient.get('/bi/kpis'),
 };
 
+// ---------- Mainlevées ----------
+export const mainleveesApi = {
+  list: (params?: Record<string, unknown>) =>
+    apiClient.get('/mainlevees', { params }),
+  create: (data: unknown) => apiClient.post('/mainlevees', data),
+  updateStatut: (id: number | string, data: unknown) =>
+    apiClient.put(`/mainlevees/${id}/statut`, data),
+  actePdf: (id: number | string) =>
+    apiClient.get(`/mainlevees/${id}/acte-pdf`),
+};
+
+// ---------- Recouvrement ----------
+export const recouvrementApi = {
+  list: (params?: Record<string, unknown>) =>
+    apiClient.get('/recouvrement', { params }),
+  create: (data: unknown) => apiClient.post('/recouvrement', data),
+  updateStatut: (id: number | string, data: unknown) =>
+    apiClient.put(`/recouvrement/${id}/statut`, data),
+  createPlan: (id: number | string, data: unknown) =>
+    apiClient.post(`/recouvrement/${id}/plan`, data),
+  enregistrerPaiement: (echeanceId: number | string, data: unknown) =>
+    apiClient.post(`/recouvrement/echeances/${echeanceId}/paiement`, data),
+  stats: () => apiClient.get('/recouvrement/stats'),
+};
+
+// ---------- Audit ----------
+export const auditApi = {
+  list: (params?: Record<string, unknown>) =>
+    apiClient.get('/audit', { params }),
+  export: () => apiClient.get('/audit/export', { responseType: 'blob' }),
+};
+
 // Helper to trigger CSV file download
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);

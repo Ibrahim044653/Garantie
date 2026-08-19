@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f1f5f9;
   --foreground: #0f172a;
@@ -204,4 +206,78 @@ body {
 }
 .step-line.completed {
   background: var(--success);
+}
+
+/* ===========================
+   Dark mode overrides
+   =========================== */
+.dark {
+  color-scheme: dark;
+}
+
+/* Body */
+.dark body {
+  background: #020617; /* slate-950 */
+  color: #f1f5f9;       /* slate-100 */
+}
+
+/* Cartes / panels */
+.dark .card {
+  background-color: #1e293b; /* slate-800 */
+  border-color: #334155;     /* slate-700 */
+  color: #f1f5f9;            /* slate-100 */
+}
+
+/* Inputs */
+.dark .form-input {
+  background-color: #0f172a; /* slate-900 */
+  border-color: #475569;     /* slate-600 */
+  color: #f1f5f9;
+}
+.dark .form-input::placeholder {
+  color: #64748b;
+}
+.dark .form-label {
+  color: #94a3b8; /* slate-400 */
+}
+
+/* Badges en dark */
+.dark .badge-muted {
+  background-color: #1e293b;
+  color: #94a3b8;
+}
+
+/* Table en dark */
+.dark .data-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  border-bottom-color: #334155;
+}
+.dark .data-table td {
+  color: #cbd5e1;
+  border-bottom-color: #1e293b;
+}
+.dark .data-table tbody tr:hover {
+  background: #1e293b;
+}
+.dark .data-table tbody tr.row-danger {
+  background: #450a0a;
+}
+.dark .data-table tbody tr.row-warning {
+  background: #451a03;
+}
+
+/* Scrollbar en dark */
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Step dot en dark */
+.dark .step-dot {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
 }

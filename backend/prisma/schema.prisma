@@ -119,9 +119,17 @@ model User {
   createdAt  DateTime @default(now()) @db.Timestamptz
   updatedAt  DateTime @updatedAt @db.Timestamptz
 
-  demandesCreees   DemandeValidation[] @relation("CreateurDemande")
-  etapesValidees   EtapeValidation[]   @relation("ValideurEtape")
-  documentVersions DocumentVersion[]   @relation("VersionsUploaded")
+  demandesCreees    DemandeValidation[]       @relation("CreateurDemande")
+  etapesValidees    EtapeValidation[]         @relation("ValideurEtape")
+  documentVersions  DocumentVersion[]         @relation("VersionsUploaded")
+  notifications     Notification[]            @relation("UserNotifications")
+  pushSubscriptions WebPushSubscription[]     @relation("UserPushSubs")
+  reevaluationsCreees ReevaluationExpertise[] @relation("ReevaluationsCreees")
+  exportsPlanifies  ExportPlanifie[]          @relation("ExportsPlanifies")
+  dashboardConfig   DashboardConfig?          @relation("UserDashboardConfig")
+  mainlevees           MainleveeRadiation[]  @relation("MainleveeCreatedBy")
+  dossierRecouvrement  DossierRecouvrement[] @relation("RecouvrementCreatedBy")
+  auditLogs            AuditLog[]            @relation("AuditLogUser")
 
   @@index([role])
 }
@@ -152,13 +160,17 @@ model Hypotheque {
   pretId                    Int?
   createdAt                 DateTime         @default(now()) @db.Timestamptz
   updatedAt                 DateTime         @updatedAt @db.Timestamptz
+  latitude                  Float?
+  longitude                 Float?
 
-  historique HistoriqueValeur[]
-  alertes    Alert[]
-  client     Client?            @relation(fields: [clientId], references: [id])
-  pret       Pret?              @relation(fields: [pretId], references: [id])
-  documents  Document[]         @relation("HypothequeDocuments")
-  assurances Assurance[]        @relation("HypothequeAssurances")
+  historique     HistoriqueValeur[]
+  alertes        Alert[]
+  client         Client?                 @relation(fields: [clientId], references: [id])
+  pret           Pret?                   @relation(fields: [pretId], references: [id])
+  documents      Document[]              @relation("HypothequeDocuments")
+  assurances     Assurance[]             @relation("HypothequeAssurances")
+  reevaluations  ReevaluationExpertise[] @relation("HypothequeReevaluations")
+  mainlevees     MainleveeRadiation[]    @relation("HypothequeMainlevees")
 
   @@unique([numeroTitreFoncier, rangHypotheque])
   @@index([nomClient])
@@ -262,11 +274,12 @@ model Pret {
   createdAt         DateTime          @default(now()) @db.Timestamptz
   updatedAt         DateTime          @updatedAt @db.Timestamptz
 
-  client      Client         @relation(fields: [clientId], references: [id])
-  echeances   EcheancePret[]
-  hypotheques Hypotheque[]
-  documents   Document[]     @relation("PretDocuments")
-  assurances  Assurance[]    @relation("PretAssurances")
+  client       Client               @relation(fields: [clientId], references: [id])
+  echeances    EcheancePret[]
+  hypotheques  Hypotheque[]
+  documents    Document[]           @relation("PretDocuments")
+  assurances   Assurance[]          @relation("PretAssurances")
+  recouvrement DossierRecouvrement? @relation("PretRecouvrement")
 
   @@index([clientId])
   @@index([statut])
@@ -483,4 +496,260 @@ model Sinistre {
 
   @@index([assuranceId])
   @@index([statut])
+}
+
+// ─── Module Notifications ─────────────────────────────────────────────────────
+
+enum NotificationType {
+  ALERTE_EXPIRATION
+  SHORTFALL_DETECTE
+  WORKFLOW_EN_ATTENTE
+  WORKFLOW_APPROUVE
+  WORKFLOW_REJETE
+  ECHEANCE_PROCHE
+  EXPERTISE_RENOUVELER
+  ASSURANCE_EXPIRATION
+  SYSTEME
+}
+
+model Notification {
+  id         Int              @id @default(autoincrement())
+  userId     Int?
+  type       NotificationType
+  titre      String
+  message    String
+  entiteType String?
+  entiteId   Int?
+  lu         Boolean          @default(false)
+  createdAt  DateTime         @default(now()) @db.Timestamptz
+
+  user User? @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lu])
+  @@index([createdAt])
+}
+
+model WebPushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  user User @relation("UserPushSubs", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Module Réévaluation / Expertise ─────────────────────────────────────────
+
+enum StatutExpert {
+  ACTIF
+  SUSPENDU
+  RETIRE
+}
+
+enum TypeExport {
+  HYPOTHEQUE_PDF
+  RAPPORT_BCEAO
+  RAPPORT_COMITE
+  PORTEFEUILLE_CSV
+}
+
+enum FrequenceExport {
+  MENSUEL
+  TRIMESTRIEL
+  SEMESTRIEL
+  ANNUEL
+}
+
+model ExpertAgree {
+  id             Int          @id @default(autoincrement())
+  nom            String
+  prenom         String?
+  cabinet        String?
+  telephone      String?
+  email          String?
+  numeroAgrement String       @unique
+  dateAgrement   DateTime     @db.Date
+  dateExpiration DateTime?    @db.Date
+  statut         StatutExpert @default(ACTIF)
+  specialites    String?
+  createdAt      DateTime     @default(now()) @db.Timestamptz
+  updatedAt      DateTime     @updatedAt @db.Timestamptz
+
+  reevaluations ReevaluationExpertise[]
+
+  @@index([statut])
+}
+
+model ReevaluationExpertise {
+  id              Int      @id @default(autoincrement())
+  hypothequeId    Int
+  dateExpertise   DateTime @db.Date
+  valeurExpertise Decimal  @db.Decimal(18, 2)
+  expertNom       String
+  expertAgreeId   Int?
+  observations    String?
+  motif           String
+  photoPaths      String?
+  createdById     Int
+  createdAt       DateTime @default(now()) @db.Timestamptz
+
+  hypotheque  Hypotheque   @relation("HypothequeReevaluations", fields: [hypothequeId], references: [id])
+  expertAgree ExpertAgree? @relation(fields: [expertAgreeId], references: [id])
+  createdBy   User         @relation("ReevaluationsCreees", fields: [createdById], references: [id])
+
+  @@index([hypothequeId])
+  @@index([createdAt])
+}
+
+// ─── Dashboard personnalisable ────────────────────────────────────────────────
+
+model DashboardConfig {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  config    String
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  user User @relation("UserDashboardConfig", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ExportPlanifie {
+  id             Int             @id @default(autoincrement())
+  type           TypeExport
+  frequence      FrequenceExport
+  prochainExport DateTime        @db.Timestamptz
+  destinataires  String
+  filtres        String?
+  actif          Boolean         @default(true)
+  createdById    Int
+  createdAt      DateTime        @default(now()) @db.Timestamptz
+
+  createdBy User @relation("ExportsPlanifies", fields: [createdById], references: [id])
+
+  @@index([prochainExport])
+  @@index([actif])
+}
+
+// ─── Enums features 5, 8, 9 ──────────────────────────────────────────────────
+
+enum StatutMainlevee {
+  EN_PREPARATION
+  EN_ATTENTE_NOTAIRE
+  EN_ATTENTE_CONSERVATION
+  COMPLETE
+  REJETE
+}
+
+enum StatutRecouvrement {
+  PRE_CONTENTIEUX
+  CONTENTIEUX
+  JUDICIAIRE
+  CLOTURE
+}
+
+enum StatutEcheanceApurement {
+  EN_ATTENTE
+  PAYE
+  EN_RETARD
+  PARTIEL
+}
+
+// ─── Feature 5: Mainlevée & Radiation ─────────────────────────────────────────
+
+model MainleveeRadiation {
+  id                       Int              @id @default(autoincrement())
+  hypothequeId             Int
+  hypotheque               Hypotheque       @relation("HypothequeMainlevees", fields: [hypothequeId], references: [id])
+  statut                   StatutMainlevee  @default(EN_PREPARATION)
+  motif                    String
+  dateInitiation           DateTime         @default(now()) @db.Timestamptz
+  dateNotaire              DateTime?        @db.Timestamptz
+  referenceNotaire         String?
+  dateConservationFonciere DateTime?        @db.Timestamptz
+  referenceConservation    String?
+  dateRadiation            DateTime?        @db.Timestamptz
+  observations             String?
+  documentGedIds           String?          // JSON array of Document.id
+  createdById              Int
+  createdBy                User             @relation("MainleveeCreatedBy", fields: [createdById], references: [id])
+  updatedAt                DateTime         @updatedAt @db.Timestamptz
+  createdAt                DateTime         @default(now()) @db.Timestamptz
+
+  @@index([hypothequeId])
+  @@index([statut])
+  @@index([createdAt])
+}
+
+// ─── Feature 8: Recouvrement ──────────────────────────────────────────────────
+
+model DossierRecouvrement {
+  id               Int                  @id @default(autoincrement())
+  pretId           Int                  @unique
+  pret             Pret                 @relation("PretRecouvrement", fields: [pretId], references: [id])
+  statut           StatutRecouvrement   @default(PRE_CONTENTIEUX)
+  dateOuverture    DateTime             @default(now()) @db.Timestamptz
+  montantDu        Decimal              @db.Decimal(18, 2)
+  montantPenalites Decimal              @default(0) @db.Decimal(18, 2)
+  observations     String?
+  planApurement    PlanApurement?
+  createdById      Int
+  createdBy        User                 @relation("RecouvrementCreatedBy", fields: [createdById], references: [id])
+  updatedAt        DateTime             @updatedAt @db.Timestamptz
+  createdAt        DateTime             @default(now()) @db.Timestamptz
+
+  @@index([statut])
+  @@index([createdAt])
+}
+
+model PlanApurement {
+  id              Int                   @id @default(autoincrement())
+  dossierId       Int                   @unique
+  dossier         DossierRecouvrement   @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  dateDebut       DateTime              @db.Timestamptz
+  montantTotal    Decimal               @db.Decimal(18, 2)
+  nombreEcheances Int
+  periodeEcheance String                // MENSUEL, TRIMESTRIEL, SEMESTRIEL
+  tauxPenalite    Decimal               @default(0) @db.Decimal(5, 4)
+  echeances       EcheanceApurement[]
+  createdAt       DateTime              @default(now()) @db.Timestamptz
+}
+
+model EcheanceApurement {
+  id             Int                       @id @default(autoincrement())
+  planId         Int
+  plan           PlanApurement             @relation(fields: [planId], references: [id], onDelete: Cascade)
+  numeroEcheance Int
+  dateEcheance   DateTime                  @db.Timestamptz
+  montant        Decimal                   @db.Decimal(18, 2)
+  statut         StatutEcheanceApurement   @default(EN_ATTENTE)
+  datePaiement   DateTime?                 @db.Timestamptz
+  montantPaye    Decimal?                  @db.Decimal(18, 2)
+  createdAt      DateTime                  @default(now()) @db.Timestamptz
+
+  @@index([planId])
+  @@index([dateEcheance])
+}
+
+// ─── Feature 9: Audit Trail ───────────────────────────────────────────────────
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation("AuditLogUser", fields: [userId], references: [id], onDelete: SetNull)
+  action    String   // CREATE, UPDATE, DELETE, VIEW, LOGIN, LOGOUT, EXPORT, SEARCH
+  entite    String   // hypotheque, pret, client, user, mainlevee, recouvrement, etc.
+  entiteId  String?
+  details   String?  // JSON: { avant: {}, apres: {}, champs: [] }
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([action])
+  @@index([entite])
+  @@index([createdAt])
 }

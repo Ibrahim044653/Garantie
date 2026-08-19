@@ -7,6 +7,7 @@ import { logger } from './services/logger';
 import { authRouter } from './routes/auth.routes';
 import { hypothequeRouter } from './routes/hypotheque.routes';
 import { dashboardRouter } from './routes/dashboard.routes';
+import { dashboardConfigRouter } from './routes/dashboard-config.routes';
 import { reportingRouter } from './routes/reporting.routes';
 import { userRouter } from './routes/user.routes';
 import { alerteRouter } from './routes/alerte.routes';
@@ -19,7 +20,18 @@ import { reportingBceaoRouter } from './routes/reporting-bceao.routes';
 import { gedRouter } from './routes/ged.routes';
 import { assuranceRouter } from './routes/assurance.routes';
 import { biRouter } from './routes/bi.routes';
+import { notificationRouter } from './routes/notification.routes';
+import { reevaluationRouter } from './routes/reevaluation.routes';
+import { expertRouter } from './routes/expert.routes';
+import { exportPlanifieRouter } from './routes/export-planifie.routes';
+import { uploadRouter } from './routes/upload.routes';
+import { mainleveeRouter } from './routes/mainlevee.routes';
+import { recouvrementRouter } from './routes/recouvrement.routes';
+import { auditRouter } from './routes/audit.routes';
+import { searchRouter } from './routes/search.routes';
+import { importRouter } from './routes/import.routes';
 import { generateAlerts } from './services/alert.service';
+import { notifyShortfall, notifyExpertiseExpiring } from './services/notification.service';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -61,6 +73,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/hypotheques', hypothequeRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/dashboard', dashboardConfigRouter);
 app.use('/api/reporting', reportingRouter);
 app.use('/api/users', userRouter);
 app.use('/api/admin/users', userRouter);
@@ -74,6 +87,16 @@ app.use('/api/reporting-bceao', reportingBceaoRouter);
 app.use('/api/ged', gedRouter);
 app.use('/api/assurances', assuranceRouter);
 app.use('/api/bi', biRouter);
+app.use('/api/notifications', notificationRouter);
+app.use('/api', reevaluationRouter);
+app.use('/api/experts', expertRouter);
+app.use('/api/exports-planifies', exportPlanifieRouter);
+app.use('/api/uploads', uploadRouter);
+app.use('/api/mainlevees', mainleveeRouter);
+app.use('/api/recouvrement', recouvrementRouter);
+app.use('/api/audit', auditRouter);
+app.use('/api/search', searchRouter);
+app.use('/api/import', importRouter);
 
 // 404 handler
 app.use((_req, res) => {
@@ -92,8 +115,19 @@ app.listen(PORT, async () => {
 
   // Run alert generation at startup
   try {
-    await generateAlerts();
+    const alerts = await generateAlerts();
     logger.info('Alert generation completed at startup');
+    // Envoyer des notifications pour les alertes critiques
+    if (alerts && Array.isArray(alerts)) {
+      for (const { type, hypotheque } of alerts) {
+        try {
+          if (type === 'SHORTFALL') await notifyShortfall(hypotheque);
+          else if (type === 'EXPERTISE_BIENTOT_EXPIREE') await notifyExpertiseExpiring(hypotheque);
+        } catch (ne) {
+          logger.error('Notification post-alerte échouée:', ne);
+        }
+      }
+    }
   } catch (err) {
     logger.error('Alert generation failed at startup:', err);
   }
@@ -101,8 +135,18 @@ app.listen(PORT, async () => {
   // Schedule daily alert generation (every 24h)
   setInterval(async () => {
     try {
-      await generateAlerts();
+      const alerts = await generateAlerts();
       logger.info('Daily alert generation completed');
+      if (alerts && Array.isArray(alerts)) {
+        for (const { type, hypotheque } of alerts) {
+          try {
+            if (type === 'SHORTFALL') await notifyShortfall(hypotheque);
+            else if (type === 'EXPERTISE_BIENTOT_EXPIREE') await notifyExpertiseExpiring(hypotheque);
+          } catch (ne) {
+            logger.error('Notification post-alerte échouée:', ne);
+          }
+        }
+      }
     } catch (err) {
       logger.error('Daily alert generation failed:', err);
     }
