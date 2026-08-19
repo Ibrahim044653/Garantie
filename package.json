@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "cd backend && npm ci && npm run build && npx prisma generate",
-    "start": "cd backend && npx prisma migrate deploy && npx prisma db seed && npm start",
+    "start": "cd backend && node dist/index.js",
     "postinstall": "cd backend && npm ci"
   },
   "engines": {
