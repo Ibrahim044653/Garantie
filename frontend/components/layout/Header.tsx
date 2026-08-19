@@ -1,15 +1,16 @@
 'use client';
 
-import { Bell, Search } from 'lucide-react';
+import { Bell, Menu, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { alertesApi } from '@/lib/api';
 
 interface HeaderProps {
   title: string;
+  onMenuClick: () => void;
 }
 
-export default function Header({ title }: HeaderProps) {
+export default function Header({ title, onMenuClick }: HeaderProps) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -24,9 +25,16 @@ export default function Header({ title }: HeaderProps) {
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10">
+      <button
+        onClick={onMenuClick}
+        className="md:hidden p-2 rounded-lg hover:bg-slate-100 -ml-2 mr-2"
+        aria-label="Menu"
+      >
+        <Menu className="w-5 h-5 text-slate-600" />
+      </button>
       <div>
         <h1 className="text-lg font-semibold text-slate-800">{title}</h1>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 hidden sm:block">
           Circulaire 04-2017 — Gestion des Garanties Hypothécaires
         </p>
       </div>

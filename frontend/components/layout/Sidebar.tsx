@@ -113,7 +113,7 @@ const adminItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const { user, logout, hasRole } = useAuth();
 
@@ -123,10 +123,20 @@ export default function Sidebar() {
   }
 
   return (
-    <aside
-      className="flex flex-col w-64 min-h-screen"
-      style={{ background: 'var(--sidebar-bg)' }}
-    >
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      <aside
+        className={`flex flex-col w-64 min-h-screen fixed md:static inset-y-0 left-0 z-50 transition-transform duration-300 md:translate-x-0 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+        style={{ background: 'var(--sidebar-bg)' }}
+      >
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-700">
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-600">
@@ -167,6 +177,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={`sidebar-link ${active ? 'active' : ''}`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
@@ -189,6 +200,7 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={onClose}
                   className={`sidebar-link ${active ? 'active' : ''}`}
                 >
                   <Icon className="w-4 h-4 flex-shrink-0" />
@@ -205,6 +217,7 @@ export default function Sidebar() {
       <div className="px-3 py-4 border-t border-slate-700 space-y-1">
         <Link
           href="/profil"
+          onClick={onClose}
           className={`sidebar-link ${pathname === '/profil' ? 'active' : ''}`}
         >
           <UserCircle className="w-4 h-4 flex-shrink-0" />
@@ -219,6 +232,7 @@ export default function Sidebar() {
           <span>Déconnexion</span>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

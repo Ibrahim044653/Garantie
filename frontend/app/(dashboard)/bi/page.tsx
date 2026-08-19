@@ -365,7 +365,7 @@ export default function BiPage() {
       )}
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {/* LineChart — 2/3 */}
         <div className="col-span-3 lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-5">
           <h2 className="text-sm font-semibold text-slate-700 mb-4">Évolution VNC 24 mois</h2>
