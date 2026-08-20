@@ -70,6 +70,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadUser();
   }, [loadUser]);
 
+  // Handle 401 events dispatched by the API interceptor
+  // (avoids hard window.location redirect which aborts page load mid-hydration)
+  useEffect(() => {
+    const handle = () => {
+      setUser(null);
+      router.replace('/login');
+    };
+    window.addEventListener('sgh:unauthorized', handle);
+    return () => window.removeEventListener('sgh:unauthorized', handle);
+  }, [router]);
+
   const login = async (email: string, password: string) => {
     const res = await authApi.login(email, password);
     const { token, user: loggedUser } = res.data;

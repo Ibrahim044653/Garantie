@@ -19,14 +19,16 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// Redirect to login on 401
+// On 401, clear credentials and signal AuthContext to redirect
+// Do NOT use window.location.href here — it aborts mid-hydration page loads
+// and causes Chrome to display "This page couldn't load" (ERR_ABORTED)
 apiClient.interceptors.response.use(
   (res) => res,
   (error: AxiosError) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.dispatchEvent(new CustomEvent('sgh:unauthorized'));
     }
     return Promise.reject(error);
   }
