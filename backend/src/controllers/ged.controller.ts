@@ -1,7 +1,5 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
-import path from 'path';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { logger } from '../services/logger';
 
@@ -35,7 +33,7 @@ export const getAll = async (req: AuthRequest, res: Response): Promise<void> => 
           versions: {
             orderBy: { numeroVersion: 'desc' },
             take: 1,
-            select: { filePath: true, fileName: true, taille: true, numeroVersion: true },
+            select: { fileName: true, taille: true, numeroVersion: true },
           },
           _count: { select: { versions: true } },
         },
@@ -72,7 +70,10 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
     const doc = await prismaAny.document.findUnique({
       where: { id },
       include: {
-        versions: { orderBy: { numeroVersion: 'desc' } },
+        versions: {
+          orderBy: { numeroVersion: 'desc' },
+          select: { id: true, numeroVersion: true, fileName: true, mimeType: true, taille: true, commentaire: true, createdAt: true },
+        },
         hypotheque: { select: { id: true, nomClient: true, numeroPret: true } },
         pret: { select: { id: true, numeroPret: true } },
         client: { select: { id: true, nom: true, codeClient: true } },
@@ -113,10 +114,11 @@ export const upload = async (req: AuthRequest, res: Response): Promise<void> => 
         versions: {
           create: {
             numeroVersion: 1,
-            filePath: req.file.path,
+            filePath: '',
             fileName: req.file.originalname,
             mimeType: req.file.mimetype,
             taille: req.file.size,
+            fileContent: req.file.buffer,
             commentaire: commentaire || null,
             uploadedById: req.user!.id,
           },
@@ -157,10 +159,11 @@ export const addVersion = async (req: AuthRequest, res: Response): Promise<void>
         versions: {
           create: {
             numeroVersion: nextVersion,
-            filePath: req.file.path,
+            filePath: '',
             fileName: req.file.originalname,
             mimeType: req.file.mimetype,
             taille: req.file.size,
+            fileContent: req.file.buffer,
             commentaire: commentaire || null,
             uploadedById: req.user!.id,
           },
@@ -223,12 +226,17 @@ export const download = async (req: AuthRequest, res: Response): Promise<void> =
       return;
     }
 
-    if (!fs.existsSync(latestVersion.filePath)) {
-      res.status(404).json({ error: 'File not found on disk' });
+    if (!latestVersion.fileContent) {
+      res.status(404).json({ error: 'File content not available' });
       return;
     }
 
-    res.download(latestVersion.filePath, latestVersion.fileName);
+    res.set({
+      'Content-Type': latestVersion.mimeType || 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="${latestVersion.fileName}"`,
+      'Content-Length': latestVersion.fileContent.length,
+    });
+    res.send(latestVersion.fileContent);
   } catch (err) {
     logger.error('GED download error:', err);
     res.status(500).json({ error: 'Internal server error' });

@@ -408,10 +408,11 @@ model DocumentVersion {
   id            Int      @id @default(autoincrement())
   documentId    Int
   numeroVersion Int
-  filePath      String
+  filePath      String   @default("")
   fileName      String
   mimeType      String
   taille        Int
+  fileContent   Bytes?
   commentaire   String?
   uploadedById  Int
   createdAt     DateTime @default(now()) @db.Timestamptz

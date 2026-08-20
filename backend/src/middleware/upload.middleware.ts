@@ -2,19 +2,6 @@ import multer from 'multer';
 import path from 'path';
 import { Request } from 'express';
 
-const uploadDir = path.join(__dirname, '..', '..', 'uploads');
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const ext = path.extname(file.originalname);
-    cb(null, `expertise-${uniqueSuffix}${ext}`);
-  },
-});
-
 const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowed = ['.pdf', '.jpg', '.jpeg', '.png'];
   const ext = path.extname(file.originalname).toLowerCase();
@@ -25,8 +12,9 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
   }
 };
 
+// Memory storage — file content stored in DB (Railway has ephemeral filesystem)
 export const uploadPDF = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
 });
