@@ -47,7 +47,11 @@ app.use(helmet({
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',');
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.some((o) => origin.startsWith(o.trim()))) {
+    const ok = !origin ||
+      allowedOrigins.some((o) => origin.startsWith(o.trim())) ||
+      /\.netlify\.app$/.test(origin) ||
+      /\.vercel\.app$/.test(origin);
+    if (ok) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

@@ -3,7 +3,9 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION    = "20"
+  NEXT_PUBLIC_API_URL = "/api"
+  BACKEND_URL     = "https://sgh-frontend.vercel.app"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
