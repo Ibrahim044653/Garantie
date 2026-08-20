@@ -243,6 +243,23 @@ export const download = async (req: AuthRequest, res: Response): Promise<void> =
   }
 };
 
+// ─── DELETE /api/ged/:id ─────────────────────────────────────────────────────
+export const deleteDocument = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    const existing = await prismaAny.document.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Document not found' });
+      return;
+    }
+    await prismaAny.document.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    logger.error('GED delete error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // ─── GET /api/ged/stats ───────────────────────────────────────────────────────
 export const getStats = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {

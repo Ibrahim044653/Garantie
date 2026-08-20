@@ -178,6 +178,7 @@ export const gedApi = {
   upload:     (formData: FormData) => apiClient.post('/ged', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   addVersion: (id: number | string, formData: FormData) => apiClient.post(`/ged/${id}/versions`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   archive:    (id: number | string) => apiClient.put(`/ged/${id}/archive`),
+  delete:     (id: number | string) => apiClient.delete(`/ged/${id}`),
   download:   (id: number | string) => apiClient.get(`/ged/${id}/download`, { responseType: 'blob' }),
 };
 

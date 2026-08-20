@@ -279,6 +279,7 @@ export default function GedPage() {
   const [downloading, setDownloading] = useState<number | null>(null);
   const [downloadError, setDownloadError] = useState<string>('');
   const [archiving, setArchiving] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -333,9 +334,22 @@ export default function GedPage() {
       await gedApi.archive(doc.id);
       await fetchData();
     } catch {
-      alert('Erreur lors de l\'archivage.');
+      setDownloadError('Erreur lors de l\'archivage.');
     } finally {
       setArchiving(null);
+    }
+  }
+
+  async function handleDelete(doc: GedDocument) {
+    if (!confirm(`Supprimer définitivement "${doc.titre}" ? Cette action est irréversible.`)) return;
+    setDeleting(doc.id);
+    try {
+      await gedApi.delete(doc.id);
+      await fetchData();
+    } catch {
+      setDownloadError('Erreur lors de la suppression.');
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -518,6 +532,15 @@ export default function GedPage() {
                               className="px-2 py-1 text-xs rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 font-medium"
                             >
                               {archiving === doc.id ? '...' : 'Archiver'}
+                            </button>
+                          )}
+                          {doc.statut === 'ARCHIVE' && (
+                            <button
+                              onClick={() => handleDelete(doc)}
+                              disabled={deleting === doc.id}
+                              className="px-2 py-1 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 font-medium"
+                            >
+                              {deleting === doc.id ? '...' : 'Supprimer'}
                             </button>
                           )}
                         </div>
