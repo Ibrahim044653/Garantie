@@ -17,11 +17,11 @@ type GedType =
 type GedStatut = 'ACTIF' | 'ARCHIVE';
 
 interface GedVersion {
-  id: number;
+  id?: number;
   numeroVersion: number;
-  tailleFichier: number;
-  cheminFichier: string;
-  createdAt: string;
+  taille: number;
+  fileName: string;
+  createdAt?: string;
 }
 
 interface GedDocument {
@@ -33,7 +33,8 @@ interface GedDocument {
   nomClient?: string;
   numeroPret?: string;
   versionActuelle: number;
-  versions: GedVersion[];
+  latestVersion?: GedVersion;
+  totalVersions?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -276,6 +277,7 @@ export default function GedPage() {
 
   // Download state
   const [downloading, setDownloading] = useState<number | null>(null);
+  const [downloadError, setDownloadError] = useState<string>('');
   const [archiving, setArchiving] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -307,11 +309,18 @@ export default function GedPage() {
 
   async function handleDownload(doc: GedDocument) {
     setDownloading(doc.id);
+    setDownloadError('');
     try {
       const res = await gedApi.download(doc.id);
-      downloadBlob(res.data, `${doc.titre.replace(/\s+/g, '_')}.pdf`);
-    } catch {
-      alert('Erreur lors du téléchargement.');
+      const fileName = doc.latestVersion?.fileName ?? `${doc.titre.replace(/\s+/g, '_')}.pdf`;
+      downloadBlob(res.data, fileName);
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        setDownloadError(`Le fichier "${doc.titre}" n'est plus disponible sur le serveur. Veuillez le re-uploader.`);
+      } else {
+        setDownloadError('Erreur lors du téléchargement. Réessayez dans quelques instants.');
+      }
     } finally {
       setDownloading(null);
     }
@@ -331,7 +340,7 @@ export default function GedPage() {
   }
 
   const lastVersion = (doc: GedDocument): GedVersion | undefined =>
-    doc.versions?.slice(-1)[0];
+    doc.latestVersion ?? undefined;
 
   return (
     <div className="space-y-6">
@@ -360,6 +369,15 @@ export default function GedPage() {
           </button>
         </div>
       </div>
+
+      {/* Download error notification */}
+      {downloadError && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700">
+          <span className="text-lg mt-0.5">⚠</span>
+          <div className="flex-1 text-sm">{downloadError}</div>
+          <button onClick={() => setDownloadError('')} className="text-red-400 hover:text-red-600 text-lg leading-none">&times;</button>
+        </div>
+      )}
 
       {/* Stats */}
       {stats && (
@@ -470,7 +488,7 @@ export default function GedPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right text-slate-500">
-                        {ver ? formatSize(ver.tailleFichier) : '—'}
+                        {ver ? formatSize(ver.taille) : '—'}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
