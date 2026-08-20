@@ -88,7 +88,15 @@ export default function RapportsPage() {
     setExportsLoading(true);
     try {
       const res = await apiClient.get('/exports-planifies');
-      setExportsPlanifies(res.data ?? []);
+      const raw = res.data;
+      const list = Array.isArray(raw) ? raw : (raw?.data ?? []);
+      // destinataires peut être une chaîne JSON (stockée en DB) — on parse si besoin
+      setExportsPlanifies(list.map((ep: ExportPlanifie & { destinataires: string | string[] }) => ({
+        ...ep,
+        destinataires: Array.isArray(ep.destinataires)
+          ? ep.destinataires
+          : (() => { try { return JSON.parse(ep.destinataires as string); } catch { return []; } })(),
+      })));
     } catch {
       setExportsPlanifies([]);
     } finally {
