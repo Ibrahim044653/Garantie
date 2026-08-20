@@ -232,6 +232,21 @@ export const auditApi = {
   export: () => apiClient.get('/audit/export', { responseType: 'blob' }),
 };
 
+// ---------- Simulation & Stress Test ----------
+export const simulationApi = {
+  stressTest: (scenarioPct: number) =>
+    apiClient.post('/simulation/stress-test', { scenarioPct }),
+  provisions: (horizons?: number[]) =>
+    apiClient.post('/simulation/provisions', { horizons }),
+};
+
+// ---------- Intelligence Artificielle ----------
+export const iaApi = {
+  scoring: () => apiClient.get('/ia/scoring'),
+  anomalies: () => apiClient.get('/ia/anomalies'),
+  reclassification: () => apiClient.get('/ia/reclassification'),
+};
+
 // Helper to trigger CSV file download
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);

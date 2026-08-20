@@ -30,6 +30,8 @@ import { recouvrementRouter } from './routes/recouvrement.routes';
 import { auditRouter } from './routes/audit.routes';
 import { searchRouter } from './routes/search.routes';
 import { importRouter } from './routes/import.routes';
+import { simulationRouter } from './routes/simulation.routes';
+import { iaRouter } from './routes/ia.routes';
 import { generateAlerts } from './services/alert.service';
 import { notifyShortfall, notifyExpertiseExpiring } from './services/notification.service';
 
@@ -97,6 +99,8 @@ app.use('/api/recouvrement', recouvrementRouter);
 app.use('/api/audit', auditRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/import', importRouter);
+app.use('/api/simulation', simulationRouter);
+app.use('/api/ia', iaRouter);
 
 // 404 handler
 app.use((_req, res) => {

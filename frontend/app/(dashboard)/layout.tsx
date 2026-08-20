@@ -37,6 +37,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/recouvrement': 'Module Recouvrement',
   '/import': 'Import en masse',
   '/admin/experts': 'Experts Agréés',
+  '/simulation': 'Simulation & Prévision',
+  '/ia': 'Intelligence Artificielle',
 };
 
 

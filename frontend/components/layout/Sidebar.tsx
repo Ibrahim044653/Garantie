@@ -17,6 +17,7 @@ import {
   GitBranch,
   ShieldAlert,
   TrendingUp,
+  TrendingDown,
   FileText,
   FolderOpen,
   ShieldCheck,
@@ -27,6 +28,7 @@ import {
   AlertOctagon,
   ClipboardList,
   Upload,
+  Brain,
 } from 'lucide-react';
 
 const navItems = [
@@ -126,6 +128,18 @@ const navItems = [
     icon: Unlock,
     exact: false,
     roles: null, // visible to all
+  },
+  {
+    href: '/simulation',
+    label: 'Simulation & Prévision',
+    icon: TrendingDown,
+    exact: false,
+  },
+  {
+    href: '/ia',
+    label: 'Intelligence Artificielle',
+    icon: Brain,
+    exact: false,
   },
 ];
 
