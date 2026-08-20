@@ -49,6 +49,8 @@ L'application compte **5 profils** distincts, chacun avec des droits et des resp
 | Reporting annuel | ✓ | ✓ | ✓ | — | ✓ |
 | Gérer les utilisateurs | ✓ | — | — | — | — |
 | Configurer le MFA | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Simulation & Prévision | ✓ | ✓ | ✓ | — | — |
+| Intelligence Artificielle | ✓ | ✓ | ✓ | — | ✓ |
 
 ---
 
@@ -581,6 +583,61 @@ Shortfall : si LTV > 100%, la garantie ne couvre pas le prêt
 > **VNC** = 200 000 000 × (1 − 0,45) = **110 000 000 FCFA**  
 > **Solde prêt** = 130 000 000 FCFA  
 > **LTV** = 130 000 000 / 110 000 000 × 100 = **118,2% → SHORTFALL**
+
+---
+
+# FONCTIONNALITÉ 16 — SIMULATION & PRÉVISION
+
+**URL :** `/simulation`  
+**Profils autorisés :** Admin, Gestionnaire, Responsable Risques
+
+## Description
+
+Le module Simulation permet de tester des scénarios hypothétiques d'évolution du portefeuille sans modifier les données réelles.
+
+## Fonctionnalités disponibles
+
+### Simulation de réévaluation individuelle
+- Sélection d'une hypothèque existante
+- Saisie d'une nouvelle valeur d'expertise simulée
+- Calcul instantané : VNC simulée, LTV simulé, impact sur le statut (Couvert / Shortfall)
+- Affichage de l'écart avec la situation actuelle
+
+### Stress test portefeuille
+- Application d'une décote de marché uniforme sur un périmètre choisi
+- Paramètre : taux de baisse (ex. : −20 %)
+- Résultat : nombre de dossiers basculant en shortfall, VNC totale impactée
+
+> Toutes les simulations sont temporaires et n'affectent pas la base de données réelle.
+
+---
+
+# FONCTIONNALITÉ 17 — INTELLIGENCE ARTIFICIELLE
+
+**URL :** `/ia`  
+**Profils autorisés :** Admin, Gestionnaire, Responsable Risques, Audit Interne
+
+## Description
+
+Le module IA fournit des analyses prédictives et des recommandations basées sur les données historiques du portefeuille hypothécaire.
+
+## Fonctionnalités disponibles
+
+### Score de risque automatique
+- Calcul d'un score de risque (0–100) pour chaque hypothèque
+- Facteurs : ancienneté expertise, évolution LTV, zone géographique, classification crédit
+
+### Détection d'anomalies
+- Identification des valeurs d'expertise incohérentes avec la zone
+- Détection de LTV anormaux par rapport à des dossiers similaires
+- Alerte sur expertises non renouvelées malgré une alerte BCEAO active
+
+### Recommandations priorisées
+- **Urgence haute :** réévaluations overdue (> 2 ans)
+- **Urgence moyenne :** dossiers proches du seuil de shortfall
+- **Surveillance :** dossiers en zone à risque marché
+
+> Les recommandations IA sont des outils d'aide à la décision et ne remplacent pas l'analyse humaine.
 
 ---
 

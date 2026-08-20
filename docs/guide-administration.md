@@ -1,6 +1,6 @@
 # Guide d'Administration — SGH (Système de Gestion des Hypothèques)
 **Société Ivoirienne de Banque (SIB)**
-Version 1.0 — Août 2026
+Version 2.0 — Août 2026
 
 ---
 
@@ -27,16 +27,17 @@ Le SGH est une application web de gestion du portefeuille hypothécaire de la SI
 
 | Composant | Technologie | Environnement de production |
 |---|---|---|
-| Backend API | Node.js / Express / TypeScript | Railway — `sgh-backend` |
-| Frontend | Next.js 14 | Vercel — `sgh-frontend` |
-| Base de données | SQLite (Prisma ORM) | Volume Railway (`hypotheque.db`) |
-| Code source | Monorepo GitHub | `https://github.com/Ibrahim044653/Garantie` (branche `main`) |
+| Backend API | Node.js / Express / TypeScript | Railway — projet `divine-charisma`, service `Garantie` |
+| Frontend | Next.js 16 | Vercel — projet `sgh-frontend` |
+| Base de données | PostgreSQL (Prisma ORM) | Railway — base liée au service Garantie |
+| Code source frontend | GitHub | `https://github.com/Ibrahim044653/Projet-Garantie` (branche `v2` → `main`) |
+| Code source backend | GitHub | `https://github.com/Ibrahim044653/Garantie` (branche `v2` → `main`) |
 
 ### URLs de production
 
-- **Frontend** : https://sgh-frontend.vercel.app
-- **Backend API** : https://sgh-backend-production-297b.up.railway.app
-- **Health check** : https://sgh-backend-production-297b.up.railway.app/api/health
+- **Frontend (Vercel)** : https://sgh-frontend.vercel.app
+- **Backend** : Railway (URL interne — accessible via le proxy Vercel `/api/*`)
+- **Health check (via proxy)** : https://sgh-frontend.vercel.app/api/health
 
 ### Structure du dépôt
 
@@ -97,11 +98,13 @@ npm install
 ```env
 NODE_ENV=development
 PORT=3001
-DATABASE_URL="file:./prisma/hypotheque.db"
+DATABASE_URL="postgresql://user:password@localhost:5432/sgh_dev"
 JWT_SECRET=votre_secret_local_dev
 JWT_EXPIRES_IN=1h
 FRONTEND_URL=http://localhost:3000
 ```
+
+> En développement local, vous pouvez utiliser une instance PostgreSQL locale (Docker recommandé : `docker run -e POSTGRES_DB=sgh_dev -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -p 5432:5432 postgres:16`). La variable `DATABASE_URL` en production est injectée automatiquement par Railway.
 
 **Frontend** — créer le fichier `frontend/.env.local` :
 
@@ -186,7 +189,8 @@ restartPolicyMaxRetries = 5
 | `PORT` | `3001` |
 | `JWT_SECRET` | `sgh_sib_prod_2026_secret_key` |
 | `JWT_EXPIRES_IN` | `1h` |
-| `FRONTEND_URL` | `https://sgh-frontend.vercel.app,https://frontend-seven-lemon-99.vercel.app` |
+| `FRONTEND_URL` | `https://sgh-frontend.vercel.app` |
+| `DATABASE_URL` | Injectée automatiquement par Railway (PostgreSQL) |
 
 > **Important** : Ne jamais versionner le `JWT_SECRET` dans le dépôt Git. Le modifier uniquement via le tableau de bord Railway.
 
@@ -213,8 +217,8 @@ railway up
 
 | Variable | Valeur |
 |---|---|
-| `BACKEND_URL` | `https://sgh-backend-production-297b.up.railway.app` |
-| `NEXT_PUBLIC_API_URL` | `https://sgh-backend-production-297b.up.railway.app/api` |
+| `BACKEND_URL` | URL interne Railway (fournie par Railway, commence par `https://`) |
+| `NEXT_PUBLIC_API_URL` | `/api` (le frontend utilise des rewrites Next.js pour proxifier vers le backend) |
 
 > `NEXT_PUBLIC_*` est exposé côté client. Ne jamais y mettre de secret.
 
@@ -227,18 +231,32 @@ vercel --prod
 # Ou déclencher automatiquement via un push Git sur main
 ```
 
-### 3.3 Flux de déploiement complet
+### 3.3 Deux dépôts Git — deux remotes
+
+Le projet utilise une architecture monorepo avec **deux remotes Git distincts** :
+
+| Remote | Dépôt GitHub | Usage |
+|---|---|---|
+| `origin` | `Ibrahim044653/Projet-Garantie` | Vercel (déploiement frontend automatique) |
+| `garantie` | `Ibrahim044653/Garantie` | Railway (déploiement backend automatique) |
+
+**Commande de push complète :**
+
+```bash
+git push origin v2:main && git push garantie v2:main
+```
+
+### 3.4 Flux de déploiement complet
 
 ```
-Développeur → git push origin main
-                      │
-          ┌───────────┴───────────┐
-          ▼                       ▼
-    Railway (backend)        Vercel (frontend)
-    migrate deploy           Build Next.js
-    db seed                  Deploy CDN
-    npm start
+Développeur → git push origin v2:main   → Vercel (frontend Next.js)
+           → git push garantie v2:main → Railway (backend Express + PostgreSQL)
+                                               ├── prisma migrate deploy
+                                               ├── prisma db seed
+                                               └── npm start
 ```
+
+Un workflow GitHub Actions (`.github/workflows/vercel-deploy.yml`) permet aussi de déclencher le déploiement Vercel depuis `Ibrahim044653/Projet-Garantie`.
 
 ---
 

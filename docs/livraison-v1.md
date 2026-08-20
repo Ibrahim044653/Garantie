@@ -4,11 +4,11 @@
 
 ---
 
-**Version :** 1.0.0 (stable)  
-**Date de livraison :** 19 août 2026  
-**Tag Git :** `v1.0.0`  
+**Version :** 2.0.0 (stable)  
+**Date de livraison :** 20 août 2026  
+**Tag Git :** `v2`  
 **Référence réglementaire :** Circulaire BCEAO n°04-2017  
-**Statut :** Production — figée pour démonstration client
+**Statut :** Production — déployée sur Vercel + Railway
 
 ---
 
@@ -76,11 +76,10 @@ Projet-Garantie/
 |---|---|
 | Plateforme | Railway |
 | Projet | divine-charisma |
-| Service | sgh-backend |
-| Région | Amsterdam (ams) |
-| URL production | https://sgh-backend-production-297b.up.railway.app |
-| Base de données | SQLite (fichier hypotheque.db) |
-| Build auto | Oui — à chaque push sur main |
+| Service | Garantie |
+| Base de données | PostgreSQL (Railway managed) |
+| Dépôt source | Ibrahim044653/Garantie (remote `garantie`) |
+| Build auto | Oui — à chaque push sur main du dépôt Garantie |
 
 ### 3.3 Variables d'environnement Railway (backend)
 
@@ -90,18 +89,18 @@ Projet-Garantie/
 | PORT | 3001 |
 | JWT_SECRET | sgh_sib_prod_2026_secret_key |
 | FRONTEND_URL | https://sgh-frontend.vercel.app |
-| DATABASE_URL | file:./prisma/hypotheque.db |
+| DATABASE_URL | Injectée automatiquement par Railway (PostgreSQL) |
 
 ### 3.4 Variables Vercel (frontend)
 
 | Variable | Valeur |
 |---|---|
-| NEXT_PUBLIC_API_URL | https://sgh-backend-production-297b.up.railway.app/api |
-| BACKEND_URL | https://sgh-backend-production-297b.up.railway.app |
+| NEXT_PUBLIC_API_URL | `/api` |
+| BACKEND_URL | URL Railway interne (injectée par Railway) |
 
 ---
 
-## 4. FONCTIONNALITÉS LIVRÉES (v1.0.0)
+## 4. FONCTIONNALITÉS LIVRÉES (v2.0.0)
 
 ### 4.1 Authentification et sécurité
 - Connexion par email / mot de passe (JWT httpOnly cookie + Bearer)
@@ -147,6 +146,31 @@ Projet-Garantie/
 - 5 rôles : ADMIN, GESTIONNAIRE_GARANTIES, RESPONSABLE_RISQUES, ENGAGEMENTS, AUDIT_INTERNE
 - Configuration MFA par compte
 
+### 4.8 Simulation & Prévision (nouveau en v2)
+- Simulateur de réévaluation individuelle (impact VNC/LTV sans modification réelle)
+- Stress test portefeuille (décote de marché globale paramétrable)
+- Accessible à : Admin, Gestionnaire, Responsable Risques
+
+### 4.9 Intelligence Artificielle (nouveau en v2)
+- Score de risque automatique par dossier (0–100)
+- Détection d'anomalies (valeurs incohérentes, LTV aberrants)
+- Recommandations priorisées par urgence
+- Accessible à : Admin, Gestionnaire, Responsable Risques, Audit Interne
+
+### 4.10 Modules complémentaires (v2)
+- GED (Gestion Électronique des Documents) — upload et consultation des pièces jointes
+- Assurances — suivi des polices liées aux hypothèques
+- Experts agréés — répertoire et suivi des certifications
+- Mainlevées — gestion du cycle de mainlevée hypothécaire
+- Recouvrement — suivi des procédures de recouvrement
+- Journal d'audit — traçabilité complète de toutes les actions
+- Notifications in-app — alertes temps réel
+- Exports planifiés — exports automatiques récurrents (quotidien, mensuel)
+- Import CSV — import en masse de dossiers
+- Recherche globale full-text
+- Business Intelligence — graphiques analytiques avancés
+- Workflow de validation — circuits de signature multi-niveaux
+
 ---
 
 ## 5. LIVRABLES DOCUMENTAIRES
@@ -167,20 +191,14 @@ Tous les documents sont disponibles dans le dossier `/docs` du dépôt GitHub :
 
 ## 6. DONNÉES DE DÉMONSTRATION
 
-### 6.1 Portefeuille de test (10 dossiers)
+### 6.1 Portefeuille de test (25 dossiers — seed v2)
 
-| N° TF | Client | Zone | VNC (FCFA) | LTV | Statut |
-|---|---|---|---|---|---|
-| TF/DK/12345 | Société Immobilière du Sénégal | Zone A | 162 500 000 | 110,8% | SHORTFALL |
-| TF/DK/67890 | Amadou Diop | Zone A | 117 000 000 | 102,6% | SHORTFALL |
-| TF/TH/11223 | Entreprise Batibuild | Zone B | 227 500 000 | 123,1% | SHORTFALL |
-| TF/ZG/44556 | Marie Claire Mendy | Zone C | 20 250 000 | 187,7% | SHORTFALL |
-| TF/DK/99887 | Groupe Commercial Thiaw | Zone A | 273 000 000 | 142,9% | SHORTFALL |
-| TF/KL/33214 | Ibrahima Fall | Zone B | 0 | 999%+ | SHORTFALL |
-| TF/ZG/77654 | Agroalimentaire Casamance SA | Zone C | 110 000 000 | 177,3% | SHORTFALL |
-| TF/DK/56781 | Fatou Diallo Wade | Zone A | 108 000 000 | 106,5% | SHORTFALL |
-| TF/MB/23456 | Complexe Hôtelier Teranga | Zone B | 306 000 000 | 179,7% | SHORTFALL |
-| TF/TH/98765 | Cheikh Ahmadou Bamba Touré | Zone B | 19 600 000 | 112,2% | SHORTFALL |
+| Référence | Zone | Statut | Notes |
+|---|---|---|---|
+| ZA-001 à ZA-008 | Zone A (×8) | Mixte | ZA-003 et ZA-006 : expertise + inscription expirées ; ZA-006 et ZA-008 : shortfall |
+| ZB-009 à ZB-015 | Zone B (×7) | Mixte | ZB-009 : expertise + inscription expirées + shortfall ; ZB-013 : expertise expirée |
+| ZC-016 à ZC-021 | Zone C (×6) | Mixte | ZC-016 et ZC-019 : shortfall ; ZC-019 : expertise + inscription expirées |
+| ZI-022 à ZI-025 | Zone Industrielle (×4) | SAIN | Tous couverts |
 
 ### 6.2 Indicateurs globaux du portefeuille de démo
 

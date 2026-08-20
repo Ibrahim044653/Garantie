@@ -64,8 +64,8 @@ Le SGH est une application web interne développée pour la SIB afin de centrali
                                            │ Prisma Client
                         ┌──────────────────▼───────────────────────┐
                         │           BASE DE DONNÉES                 │
-                        │  SQLite (fichier — volume Railway)        │
-                        │  prisma/dev.db                            │
+                        │  PostgreSQL (Railway managed)             │
+                        │  Connecté via DATABASE_URL (Railway)      │
                         └──────────────────────────────────────────┘
 ```
 
@@ -97,13 +97,14 @@ Le SGH est une application web interne développée pour la SIB afin de centrali
 | Runtime | Node.js 20 LTS |
 | Framework | Express 4.x + TypeScript |
 | ORM | Prisma 5.x |
-| Base de données | SQLite (fichier persisté sur volume Railway) |
-| URL de production | https://sgh-backend-production-297b.up.railway.app |
-| Fichier de config | `railway.toml` (à la racine du monorepo) |
-| Build command | `npm run build --workspace=backend` |
-| Start command | `node backend/dist/index.js` |
+| Base de données | PostgreSQL (Railway managed — injecté via DATABASE_URL) |
+| URL de production | URL interne Railway (proxy via Vercel `/api/*`) |
+| Dépôt Railway | `Ibrahim044653/Garantie` — remote `garantie` |
+| Fichier de config | `backend/railway.json` |
+| Build command | `cd backend && npm install && npm run build` |
+| Start command | `cd backend && npx prisma migrate deploy && npx prisma db seed && npm start` |
 
-Le fichier `railway.toml` à la racine orchestre le build depuis le monorepo : Railway exécute `prisma generate` puis `prisma db push` avant de démarrer le serveur, ce qui garantit que le schéma SQLite est toujours synchronisé avec le code déployé.
+Le backend est déployé depuis le dépôt `Ibrahim044653/Garantie`. Railway exécute automatiquement `prisma migrate deploy` et `prisma db seed` (idempotent via `upsert`) à chaque démarrage, garantissant que le schéma PostgreSQL et les comptes de démonstration sont toujours synchronisés.
 
 ---
 
@@ -282,6 +283,39 @@ Toutes les routes (sauf `/api/auth/login`) nécessitent un JWT valide transmis s
 | POST | `/api/users` | Création d'un utilisateur |
 | PUT | `/api/users/:id` | Modification (rôle, informations) |
 | DELETE | `/api/users/:id` | Suppression |
+
+### 6.7 Simulation & Prévision
+
+| Méthode | Route | Description |
+|---|---|---|
+| POST | `/api/simulation/reevaluation` | Simule l'impact d'une nouvelle valeur d'expertise |
+| POST | `/api/simulation/stress-test` | Applique une décote de marché au portefeuille |
+| GET | `/api/simulation/scenarios` | Liste des scénarios sauvegardés |
+
+### 6.8 Intelligence Artificielle
+
+| Méthode | Route | Description |
+|---|---|---|
+| GET | `/api/ia/scores` | Scores de risque calculés pour toutes les hypothèques |
+| GET | `/api/ia/anomalies` | Liste des anomalies détectées |
+| GET | `/api/ia/recommandations` | Recommandations priorisées par profil |
+
+### 6.9 Autres modules
+
+| Module | Routes | Description |
+|---|---|---|
+| GED | `/api/ged/*` | Gestion électronique des documents (upload, liste, download) |
+| Assurances | `/api/assurances/*` | Suivi des polices d'assurance liées aux hypothèques |
+| Experts | `/api/experts/*` | Répertoire des experts agréés |
+| Mainlevées | `/api/mainlevees/*` | Gestion des mainlevées hypothécaires |
+| Recouvrement | `/api/recouvrement/*` | Suivi des procédures de recouvrement |
+| Audit | `/api/audit/*` | Journal d'audit (toutes les actions utilisateurs) |
+| Notifications | `/api/notifications/*` | Notifications in-app temps réel |
+| Exports planifiés | `/api/exports-planifies/*` | Exports automatiques récurrents |
+| Import CSV | `/api/import/*` | Import en masse d'hypothèques |
+| Recherche globale | `/api/search` | Recherche full-text sur tous les dossiers |
+| BI / Analytiques | `/api/bi/*` | Données pour les graphiques Business Intelligence |
+| Workflow | `/api/workflow/*` | Gestion des validations et circuits de signature |
 
 ---
 

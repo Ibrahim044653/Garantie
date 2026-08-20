@@ -17,15 +17,16 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Nombre total de dossiers actifs | **10** |
-| Valeur Nette Consolidée (VNC) totale | **1 343 850 000 FCFA** |
-| Encours total des prêts | **1 965 000 000 FCFA** |
-| LTV moyen du portefeuille | **224,17%** |
-| Dossiers en situation de Shortfall (LTV > 100%) | **10 / 10 (100%)** |
-| Alertes actives (toutes catégories) | **21** |
-| Couverture effective du portefeuille par les garanties | **68,4%** |
+| Nombre total de dossiers actifs | **25** |
+| Répartition : Zone A / Zone B / Zone C / Industrielle | **8 / 7 / 6 / 4** |
+| Alertes actives (toutes catégories) | **17** |
+| Expertises expirées (ancienneté > 5 ans) | **5 dossiers (ZA-003, ZA-006, ZB-009, ZB-013, ZC-019)** |
+| Dossiers en situation de Shortfall (LTV > 100%) | **5 (ZA-006, ZA-008, ZB-009, ZC-016, ZC-019)** |
+| Inscriptions foncières expirées | **5 dossiers** |
+| Clients associés | **20** |
+| Prêts associés | **20** |
 
-> **Évaluation globale : CRITIQUE** — La totalité du portefeuille de garanties hypothécaires présente un ratio Loan-to-Value supérieur à 100%, traduisant une sous-couverture systémique. Des mesures de réévaluation urgentes sont requises conformément à l'article 3 de la Circulaire 04-2017 BCEAO.
+> **Évaluation globale : SOUS SURVEILLANCE** — 5 dossiers sur 25 présentent une situation de shortfall nécessitant un traitement prioritaire. Les expertises expirées doivent être renouvelées conformément à l'article 3 de la Circulaire 04-2017 BCEAO.
 
 ---
 

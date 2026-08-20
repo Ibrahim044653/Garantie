@@ -4,8 +4,8 @@
 
 ---
 
-**Version :** 1.0  
-**Date :** Août 2026  
+**Version :** 2.0  
+**Date :** 20 août 2026  
 **Conformité :** Circulaire BCEAO n°04-2017  
 **URL Production :** https://sgh-frontend.vercel.app  
 **Contact support :** Direction des Systèmes d'Information — SIB
@@ -27,7 +27,9 @@
 11. [Configuration MFA](#11-configuration-mfa)
 12. [Formules et règles métier](#12-formules-et-règles-métier)
 13. [Rôles et permissions](#13-rôles-et-permissions)
-14. [Glossaire](#14-glossaire)
+14. [Module Simulation & Prévision](#14-module-simulation--prévision)
+15. [Module Intelligence Artificielle](#15-module-intelligence-artificielle)
+16. [Glossaire](#16-glossaire)
 
 ---
 
@@ -535,7 +537,69 @@ Le SGH implémente un contrôle d'accès basé sur les rôles (RBAC). Chaque uti
 
 ---
 
-## 14. Glossaire
+## 14. Module Simulation & Prévision
+
+Accessible via le menu **Simulation** (URL : `/simulation`), ce module permet aux gestionnaires et responsables risques de tester des scénarios hypothétiques sans modifier les données réelles du portefeuille.
+
+### 14.1 Simulation de réévaluation
+
+Ce simulateur calcule l'impact d'une modification de la valeur d'expertise ou des paramètres d'une hypothèque :
+
+1. Sélectionner l'hypothèque cible dans la liste déroulante
+2. Saisir la nouvelle valeur d'expertise hypothétique (en FCFA)
+3. Modifier si besoin la zone géographique, le type d'occupation ou la date d'expertise simulée
+4. Cliquer sur **Simuler**
+
+Le système affiche immédiatement :
+- La VNC simulée et l'écart avec la valeur actuelle
+- Le LTV simulé et le statut résultant (Couvert / Shortfall)
+- La variation en montant et en pourcentage
+
+### 14.2 Simulation de stress test
+
+Ce scénario applique simultanément une décote supplémentaire à un sous-ensemble du portefeuille pour simuler une chute du marché immobilier :
+
+1. Sélectionner le périmètre (toutes zones, ou zone spécifique)
+2. Indiquer le pourcentage de baisse de marché à simuler (ex. : -20 %)
+3. Cliquer sur **Lancer le stress test**
+
+Le rapport de stress affiche le nombre de dossiers basculant en shortfall, la VNC totale impactée et la variation de couverture du portefeuille.
+
+> **Note :** Toutes les simulations sont temporaires et non enregistrées. Elles n'affectent pas les données réelles du SGH.
+
+---
+
+## 15. Module Intelligence Artificielle
+
+Accessible via le menu **Intelligence Artificielle** (URL : `/ia`), ce module fournit des analyses prédictives et des recommandations basées sur les données historiques du portefeuille.
+
+### 15.1 Score de risque automatique
+
+Pour chaque hypothèque, le module IA calcule un **score de risque** (0 à 100) en tenant compte de :
+- L'ancienneté de l'expertise
+- L'évolution historique du LTV
+- La zone géographique et son évolution de marché
+- La classification du crédit associé (SAIN, SURVEILLANCE, DOUTEUX, CONTENTIEUX)
+
+### 15.2 Détection d'anomalies
+
+L'IA identifie automatiquement les dossiers présentant des anomalies :
+- Valeurs d'expertise incohérentes avec la zone
+- LTV anormalement élevé comparé à des dossiers similaires
+- Expertises non renouvelées malgré une alerte BCEAO active
+
+### 15.3 Recommandations
+
+Le module génère des recommandations priorisées pour chaque gestionnaire :
+- **Urgence haute** : réévaluations overdue (> 2 ans d'ancienneté)
+- **Urgence moyenne** : dossiers proches du seuil de shortfall
+- **Surveillance** : dossiers en zone à risque marché
+
+> **Note :** Les recommandations IA sont des outils d'aide à la décision. Elles ne remplacent pas l'analyse humaine et n'engagent pas la responsabilité réglementaire de la banque.
+
+---
+
+## 16. Glossaire
 
 | Terme | Définition |
 |---|---|
