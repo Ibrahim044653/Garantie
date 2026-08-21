@@ -37,8 +37,11 @@ pretRouter.post(
   '/',
   requireGestionnaire,
   [
-    body('clientId').isInt({ min: 1 }).withMessage('clientId requis (entier positif)'),
-    body('numeroPret').notEmpty().withMessage('numeroPret requis'),
+    // clientId (entier) OU codeClient (string) — l'un ou l'autre suffit
+    body('clientId').optional({ nullable: true }).isInt({ min: 1 }).withMessage('clientId doit être un entier positif'),
+    body('codeClient').optional({ nullable: true }).isString().withMessage('codeClient doit être une chaîne'),
+    // numeroPret est auto-généré si absent
+    body('numeroPret').optional().isString(),
     body('montantInitial').isFloat({ min: 0.01 }).withMessage('montantInitial doit être un nombre positif'),
     body('tauxInteret').isFloat({ min: 0 }).withMessage('tauxInteret doit être un nombre positif ou zéro'),
     body('dureeMois').isInt({ min: 1 }).withMessage('dureeMois doit être un entier ≥ 1'),

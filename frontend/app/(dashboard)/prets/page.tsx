@@ -119,8 +119,9 @@ export default function PretsPage() {
       fetchData();
       fetchStats();
     } catch (err: unknown) {
-      const data = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data;
-      setError(data?.message ?? data?.error ?? 'Une erreur est survenue');
+      const data = (err as { response?: { data?: { message?: string; error?: string; details?: { field: string; message: string }[] } } })?.response?.data;
+      const details = data?.details?.map((d) => d.message).join(' · ');
+      setError(details ?? data?.message ?? data?.error ?? 'Une erreur est survenue');
     } finally {
       setSaving(false);
     }
@@ -333,7 +334,7 @@ export default function PretsPage() {
                   value={form.codeClient}
                   onChange={(e) => setForm({ ...form, codeClient: e.target.value })}
                   className="form-input"
-                  placeholder="Ex: CLI-0001"
+                  placeholder="Ex: CLI-001"
                   required
                 />
               </div>
