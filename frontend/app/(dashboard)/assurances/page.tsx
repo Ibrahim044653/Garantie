@@ -44,10 +44,13 @@ interface Assurance {
 
 interface AssuranceStats {
   total: number;
-  actives: number;
+  actives?: number;
   expirantBientot: number;
-  expirees: number;
-  montantAssureTotal: number;
+  expirees?: number;
+  montantAssureTotal?: number;
+  // Anciens noms retournés par le backend avant le fix
+  byStatut?: Record<string, number>;
+  montantAssureTotalFCFA?: number;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -419,7 +422,9 @@ export default function AssurancesPage() {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
             <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Actives</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">{stats.actives}</p>
+            <p className="text-2xl font-bold text-green-600 mt-1">
+              {stats.actives ?? stats.byStatut?.['ACTIVE'] ?? '—'}
+            </p>
           </div>
           <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
             <p className="text-xs text-amber-600 uppercase tracking-wide font-semibold">Expirant bientôt</p>
@@ -427,14 +432,17 @@ export default function AssurancesPage() {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
             <p className="text-xs text-red-500 uppercase tracking-wide font-semibold">Expirées</p>
-            <p className="text-2xl font-bold text-red-600 mt-1">{stats.expirees}</p>
+            <p className="text-2xl font-bold text-red-600 mt-1">
+              {stats.expirees ?? stats.byStatut?.['EXPIREE'] ?? '—'}
+            </p>
           </div>
           <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
             <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Montant assuré total</p>
             <p className="text-2xl font-bold text-indigo-600 mt-1">
-              {stats.montantAssureTotal != null
-                ? (stats.montantAssureTotal / 1e6).toFixed(1) + ' M'
-                : '—'}
+              {(() => {
+                const v = stats.montantAssureTotal ?? stats.montantAssureTotalFCFA;
+                return v != null ? (v / 1e6).toFixed(1) + ' M' : '—';
+              })()}
             </p>
             <p className="text-xs text-slate-400">FCFA</p>
           </div>
