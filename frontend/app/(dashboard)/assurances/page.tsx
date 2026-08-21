@@ -432,7 +432,9 @@ export default function AssurancesPage() {
           <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-100">
             <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Montant assuré total</p>
             <p className="text-2xl font-bold text-indigo-600 mt-1">
-              {(stats.montantAssureTotal / 1e6).toFixed(1)} M
+              {stats.montantAssureTotal != null
+                ? (stats.montantAssureTotal / 1e6).toFixed(1) + ' M'
+                : '—'}
             </p>
             <p className="text-xs text-slate-400">FCFA</p>
           </div>

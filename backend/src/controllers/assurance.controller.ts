@@ -265,9 +265,11 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
 
     res.json({
       total,
-      byStatut,
+      actives: byStatut['ACTIVE'] ?? 0,
+      expirees: byStatut['EXPIREE'] ?? 0,
       expirantBientot,
-      montantAssureTotalFCFA: montantTotalRaw._sum.montantAssure || 0,
+      montantAssureTotal: montantTotalRaw._sum.montantAssure || 0,
+      byStatut,
       primesTotalesMois: primesTotalesRaw._sum.primeMensuelle || 0,
     });
   } catch (err) {
