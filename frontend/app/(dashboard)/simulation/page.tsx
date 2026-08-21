@@ -95,11 +95,44 @@ export default function SimulationPage() {
     setStressLoading(true);
     setStressError(null);
     try {
-      const res = await simulationApi.stressTest(scenarioPct);
-      setStressResult(res.data ?? res.data?.data ?? null);
+      // Backend attend une valeur positive (0-80), le slider utilise des valeurs négatives
+      const res = await simulationApi.stressTest(Math.abs(scenarioPct));
+      const d = res.data;
+      if (!d) { setStressResult(null); return; }
+
+      // Transformer parZone (objet) en tableau attendu par les graphiques
+      const parZoneArr = Object.entries(d.parZone ?? {}).map(([zone, vals]: [string, unknown]) => {
+        const v = vals as { actuel: number; simule: number };
+        return { zone, actuel: v.actuel, simule: v.simule };
+      });
+
+      // Calculer l'impact % sur le shortfall total
+      const totalActuel = d.totalShortfallActuel ?? 0;
+      const totalSimule = d.totalShortfallSimule ?? 0;
+      const impactPct = totalActuel > 0 ? ((totalSimule - totalActuel) / totalActuel) * 100 : scenarioPct;
+
+      setStressResult({
+        nouveauxShortfalls: d.nbNouveauxShortfalls ?? 0,
+        shortfallsAggraves: d.nbShortfallsAggraves ?? 0,
+        deltaProvisions:    d.impactProvisionsEstime ?? d.deltaTotal ?? 0,
+        impactPorcentage:   impactPct,
+        parZone: parZoneArr,
+        top10: (d.top10Impactes ?? []).map((item: {
+          nomClient: string; zoneGeographique: string;
+          shortfallActuel: number; shortfallSimule: number; delta: number;
+        }) => ({
+          nomClient:  item.nomClient,
+          numeroPret: '—',
+          zone:       item.zoneGeographique,
+          soldePret:  item.shortfallSimule,
+          vncActuel:  item.shortfallActuel,
+          vncSimule:  item.shortfallSimule,
+          delta:      item.delta,
+        })),
+      });
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } }; message?: string };
-      setStressError(err?.response?.data?.message ?? err?.message ?? 'Erreur inconnue');
+      const err = e as { response?: { data?: { error?: string; message?: string } }; message?: string };
+      setStressError(err?.response?.data?.error ?? err?.response?.data?.message ?? err?.message ?? 'Erreur inconnue');
     } finally {
       setStressLoading(false);
     }
@@ -109,11 +142,36 @@ export default function SimulationPage() {
     setProvLoading(true);
     setProvError(null);
     try {
-      const res = await simulationApi.provisions([0, 3, 6, 12]);
-      setProvResult(res.data ?? res.data?.data ?? null);
+      // Horizons en trimestres : 0=actuel, 1=T+3mois, 2=T+6mois, 4=T+12mois
+      const res = await simulationApi.provisions([0, 1, 2, 4]);
+      const d = res.data;
+      if (!d) { setProvResult(null); return; }
+
+      // Mapper la réponse backend vers le format attendu par les graphiques
+      const horizons: typeof d.horizons = d.horizons ?? [];
+      setProvResult({
+        series: horizons.map((h: { mois: number; provisionEstimee: number }) => ({
+          horizon: h.mois,
+          provision: h.provisionEstimee,
+        })),
+        details: horizons.map((h: {
+          mois: number;
+          distribution: { SAIN: number; SURVEILLANCE: number; DOUTEUX: number; CONTENTIEUX: number };
+          provisionEstimee: number;
+          deltaVsActuel: number;
+        }) => ({
+          horizon:        h.mois,
+          sain:           h.distribution.SAIN,
+          surveillance:   h.distribution.SURVEILLANCE,
+          douteux:        h.distribution.DOUTEUX,
+          contentieux:    h.distribution.CONTENTIEUX,
+          provisionEstimee: h.provisionEstimee,
+          deltaActuel:    h.deltaVsActuel,
+        })),
+      });
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } }; message?: string };
-      setProvError(err?.response?.data?.message ?? err?.message ?? 'Erreur inconnue');
+      const err = e as { response?: { data?: { error?: string; message?: string } }; message?: string };
+      setProvError(err?.response?.data?.error ?? err?.response?.data?.message ?? err?.message ?? 'Erreur inconnue');
     } finally {
       setProvLoading(false);
     }
