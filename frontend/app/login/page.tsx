@@ -96,7 +96,7 @@ export default function LoginPage() {
             <Landmark className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">
-            Système de Gestion des Hypothèques
+            SIGGHY
           </h1>
           <p className="text-blue-200 text-sm mt-1">
             Application Bancaire Interne — Circulaire 04-2017

@@ -1,5 +1,5 @@
-# Document Technique — Système de Gestion des Hypothèques (SGH)
-## Société Ivoirienne de Banque (SIB)
+﻿# Document Technique — SIGGHY
+## Banque ICO
 
 **Version :** 1.0  
 **Date :** 18 août 2026  
@@ -26,7 +26,7 @@
 
 ## 1. Contexte et objectifs
 
-Le SGH est une application web interne développée pour la SIB afin de centraliser et fiabiliser la gestion du portefeuille des garanties hypothécaires. Avant cet outil, le suivi des hypothèques reposait sur des fichiers Excel disparates, ce qui exposait la banque à des risques opérationnels (erreurs de calcul, péremptions non détectées, absence de traçabilité).
+Le SGH est une application web interne développée pour la Banque ICO afin de centraliser et fiabiliser la gestion du portefeuille des garanties hypothécaires. Avant cet outil, le suivi des hypothèques reposait sur des fichiers Excel disparates, ce qui exposait la banque à des risques opérationnels (erreurs de calcul, péremptions non détectées, absence de traçabilité).
 
 **Objectifs fonctionnels :**
 
@@ -42,7 +42,7 @@ Le SGH est une application web interne développée pour la SIB afin de centrali
 
 ```
                         ┌──────────────────────────────────────────┐
-                        │              UTILISATEURS SIB             │
+                        │              UTILISATEURS ICO             │
                         │  (Navigateur web — Chrome / Edge / FF)   │
                         └──────────────────┬───────────────────────┘
                                            │ HTTPS
@@ -73,7 +73,7 @@ Le SGH est une application web interne développée pour la SIB afin de centrali
 
 1. Le navigateur charge l'application Next.js depuis Vercel (SSR/CSR selon la route).
 2. Toutes les requêtes API transitent vers le backend Railway via HTTPS.
-3. Le jeton JWT est stocké en cookie httpOnly (non accessible au JavaScript de la page), ce qui prévient le vol par XSS.
+3. Le jeton JWT est stocké en cookie httpOnly (non accesICOle au JavaScript de la page), ce qui prévient le vol par XSS.
 4. Les réponses API sont en JSON ; le module `lib/api.ts` (Axios) gère les intercepteurs de token et les erreurs 401.
 
 ---
@@ -175,7 +175,7 @@ Le schéma Prisma définit quatre entités principales.
 | Champ | Type Prisma | Description |
 |---|---|---|
 | `id` | Int (PK) | Identifiant interne |
-| `codeClient` | String | Code client SIB |
+| `codeClient` | String | code client ICO |
 | `nomClient` | String | Nom complet du client |
 | `numeroPret` | String | Référence du prêt associé |
 | `numeroTitreFoncier` | String | Numéro de titre foncier officiel |
@@ -392,7 +392,7 @@ Le calcul VNC est ensuite relancé avec cette nouvelle valeur.
 
 ### 8.1 Authentification JWT
 
-Le backend émet un JSON Web Token (JWT) signé avec une clé secrète stockée en variable d'environnement (`JWT_SECRET`). Le token est transmis au navigateur via un **cookie httpOnly** (inaccessible au JavaScript de la page, ce qui prévient le vol par attaque XSS). Pour les appels API directs (Postman, scripts), le token peut également être transmis en en-tête `Authorization: Bearer <token>`.
+Le backend émet un JSON Web Token (JWT) signé avec une clé secrète stockée en variable d'environnement (`JWT_SECRET`). Le token est transmis au navigateur via un **cookie httpOnly** (inaccesICOle au JavaScript de la page, ce qui prévient le vol par attaque XSS). Pour les appels API directs (Postman, scripts), le token peut également être transmis en en-tête `Authorization: Bearer <token>`.
 
 Le middleware `auth.middleware.ts` vérifie la signature et l'expiration du token sur chaque requête protégée.
 
@@ -425,7 +425,7 @@ L'authentification à deux facteurs est implémentée avec le protocole TOTP (Ti
 
 Le backend configure Express-CORS pour n'accepter les requêtes que depuis l'origine Vercel de production (`https://sgh-frontend.vercel.app`) et, en environnement de développement, depuis `http://localhost:3000`.
 
-### 8.5 Variables d'environnement sensibles
+### 8.5 Variables d'environnement senICOles
 
 Les secrets (clé JWT, base de données, etc.) ne sont jamais commités dans le dépôt Git. Ils sont injectés via les interfaces de secrets de Vercel (frontend) et Railway (backend).
 
@@ -516,10 +516,10 @@ Le mécanisme d'alertes actuel est basé sur la vérification synchrone à chaqu
 
 La clé `JWT_SECRET` doit être rotée périodiquement. Prévoir un mécanisme de révocation des sessions actives (liste noire de JTI ou raccourcissement de la durée de vie du token avec refresh token).
 
-### 11.5 Journalisation des accès sensibles
+### 11.5 Journalisation des accès senICOles
 
-Pour répondre aux exigences de l'audit interne, il est recommandé d'ajouter un journal des accès aux fonctions sensibles (exports, suppressions, modifications de rôles) avec horodatage, identité de l'utilisateur et adresse IP source.
+Pour répondre aux exigences de l'audit interne, il est recommandé d'ajouter un journal des accès aux fonctions senICOles (exports, suppressions, modifications de rôles) avec horodatage, identité de l'utilisateur et adresse IP source.
 
 ---
 
-*Document généré le 18 août 2026 — Système de Gestion des Hypothèques v1.0 — SIB / Accenture*
+*Document généré le 18 août 2026 — SIGGHY v1.0 — ICO / Accenture*

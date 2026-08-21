@@ -85,7 +85,7 @@ hypothequeRouter.post(
   reevaluer,
 );
 
-// POST revaloriser par indice (2ème et 3ème rang — TDR SIB)
+// POST revaloriser par indice (2ème et 3ème rang — TDR ICO)
 hypothequeRouter.post(
   '/:id/revaloriser',
   requireGestionnaire,

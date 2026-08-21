@@ -165,15 +165,15 @@ export async function exportHypothequeSheet(
     doc.setFillColor(br, bg, bb);
     doc.rect(0, 0, pageW, 30, 'F');
 
-    // Logo SGH (gauche)
+    // Logo SIGGHY (gauche)
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('SGH', margin, 20);
+    doc.text('SIGGHY', margin, 20);
 
     // Textes droite
     doc.setFontSize(14);
-    doc.text('SGH — Système de Gestion des Hypothèques', pageW - margin, 13, { align: 'right' });
+    doc.text('SIGGHY — Garanties Hypothécaires', pageW - margin, 13, { align: 'right' });
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text('Fiche Hypothèque', pageW - margin, 21, { align: 'right' });
@@ -333,7 +333,7 @@ export async function exportBCEAOReport(data: BCEAOReportData): Promise<void> {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(36);
     doc.setFont('helvetica', 'bold');
-    doc.text('SGH', pageW / 2, 80, { align: 'center' });
+    doc.text('SIGGHY', pageW / 2, 80, { align: 'center' });
 
     doc.setFontSize(18);
     doc.text('RAPPORT BCEAO', pageW / 2, 120, { align: 'center' });
@@ -508,7 +508,7 @@ export async function exportComiteReport(
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(36);
     doc.setFont('helvetica', 'bold');
-    doc.text('SGH', pageW / 2, 80, { align: 'center' });
+    doc.text('SIGGHY', pageW / 2, 80, { align: 'center' });
 
     doc.setFontSize(20);
     doc.text('RAPPORT COMITÉ DE CRÉDIT', pageW / 2, 115, { align: 'center' });
@@ -698,7 +698,7 @@ export async function exportReevaluationHistory(
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('SGH', margin, 20);
+    doc.text('SIGGHY', margin, 20);
 
     doc.setFontSize(13);
     doc.text('Historique des Réévaluations', pageW - margin, 14, { align: 'right' });

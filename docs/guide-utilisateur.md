@@ -1,6 +1,6 @@
-# Guide Utilisateur — SGH
-## Système de Gestion des Hypothèques
-### Société Ivoirienne de Banque (SIB)
+﻿# Guide Utilisateur — SGH
+## SIGGHY
+### Banque ICO
 
 ---
 
@@ -8,7 +8,7 @@
 **Date :** 20 août 2026  
 **Conformité :** Circulaire BCEAO n°04-2017  
 **URL Production :** https://sgh-frontend.vercel.app  
-**Contact support :** Direction des Systèmes d'Information — SIB
+**Contact support :** Direction des Systèmes d'Information — ICO
 
 ---
 
@@ -35,7 +35,7 @@
 
 ## 1. Introduction
 
-Le **Système de Gestion des Hypothèques (SGH)** est une application web sécurisée développée pour la **Société Ivoirienne de Banque (SIB)** afin de centraliser et automatiser la gestion des garanties hypothécaires dans le strict respect de la **Circulaire BCEAO n°04-2017** relative à la prise en compte des sûretés réelles dans le calcul des provisions.
+Le **SIGGHY** est une application web sécurisée développée pour la **Banque ICO** afin de centraliser et automatiser la gestion des garanties hypothécaires dans le strict respect de la **Circulaire BCEAO n°04-2017** relative à la prise en compte des sûretés réelles dans le calcul des provisions.
 
 ### 1.1 Objectifs du système
 
@@ -138,7 +138,7 @@ Le tableau de bord propose des boutons d'accès rapide aux fonctions les plus ut
 
 ### 4.1 Liste des hypothèques
 
-Accessible via le menu principal **Hypothèques**, cette page affiche l'ensemble des garanties enregistrées sous forme de tableau paginé.
+AccesICOle via le menu principal **Hypothèques**, cette page affiche l'ensemble des garanties enregistrées sous forme de tableau paginé.
 
 **Colonnes affichées :**
 
@@ -201,7 +201,7 @@ Toute modification déclenche un recalcul immédiat de la VNC et du LTV.
 2. Une fenêtre de confirmation s'affiche avec le rappel de la référence et du client
 3. Cliquer sur **Confirmer la suppression**
 
-> **Avertissement :** La suppression est irréversible. Elle ne doit être effectuée que pour des garanties créées par erreur. Les garanties ayant fait l'objet de réévaluations ne peuvent pas être supprimées pour préserver la traçabilité réglementaire.
+> **Avertissement :** La suppression est irréverICOle. Elle ne doit être effectuée que pour des garanties créées par erreur. Les garanties ayant fait l'objet de réévaluations ne peuvent pas être supprimées pour préserver la traçabilité réglementaire.
 
 ---
 
@@ -417,7 +417,7 @@ Pour désactiver un compte (départ d'un collaborateur, suspension) : cliquer su
 
 Pour réactiver un compte suspendu : cliquer sur **Réactiver**.
 
-> **Note :** La suppression définitive d'un compte n'est pas possible si l'utilisateur a effectué des opérations dans le système (principe de traçabilité). La désactivation est l'action appropriée.
+> **Note :** La suppression définitive d'un compte n'est pas posICOle si l'utilisateur a effectué des opérations dans le système (principe de traçabilité). La désactivation est l'action appropriée.
 
 ---
 
@@ -444,7 +444,7 @@ L'authentification multi-facteurs (MFA) ajoute une couche de sécurité supplém
 4. Saisir un code MFA valide (dernière vérification avant désactivation)
 5. Cliquer sur **Confirmer la désactivation**
 
-> **Note :** Le MFA est fortement recommandé pour tous les utilisateurs, et obligatoire pour les profils Administrateur et Responsable Risques selon la politique de sécurité informatique de la SIB.
+> **Note :** Le MFA est fortement recommandé pour tous les utilisateurs, et obligatoire pour les profils Administrateur et Responsable Risques selon la politique de sécurité informatique de la Banque ICO.
 
 ### 11.3 Codes de secours
 
@@ -539,7 +539,7 @@ Le SGH implémente un contrôle d'accès basé sur les rôles (RBAC). Chaque uti
 
 ## 14. Module Simulation & Prévision
 
-Accessible via le menu **Simulation** (URL : `/simulation`), ce module permet aux gestionnaires et responsables risques de tester des scénarios hypothétiques sans modifier les données réelles du portefeuille.
+AccesICOle via le menu **Simulation** (URL : `/simulation`), ce module permet aux gestionnaires et responsables risques de tester des scénarios hypothétiques sans modifier les données réelles du portefeuille.
 
 ### 14.1 Simulation de réévaluation
 
@@ -571,7 +571,7 @@ Le rapport de stress affiche le nombre de dossiers basculant en shortfall, la VN
 
 ## 15. Module Intelligence Artificielle
 
-Accessible via le menu **Intelligence Artificielle** (URL : `/ia`), ce module fournit des analyses prédictives et des recommandations basées sur les données historiques du portefeuille.
+AccesICOle via le menu **Intelligence Artificielle** (URL : `/ia`), ce module fournit des analyses prédictives et des recommandations basées sur les données historiques du portefeuille.
 
 ### 15.1 Score de risque automatique
 
@@ -616,13 +616,13 @@ Le module génère des recommandations priorisées pour chaque gestionnaire :
 | **Provisionnement** | Constitution de réserves comptables par la banque pour couvrir le risque de perte sur un crédit |
 | **Réévaluation bisannuelle** | Obligation réglementaire de mettre à jour la valeur des garanties hypothécaires au moins tous les deux ans |
 | **Revalorisation par indice** | Actualisation simplifiée de la valeur d'une garantie (2ème/3ème rang) par application d'un coefficient d'évolution du marché |
-| **SGH** | Système de Gestion des Hypothèques — application web développée pour la SIB |
+| **SGH** | SIGGHY — application web développée pour la Banque ICO |
 | **Shortfall** | Situation dans laquelle la valeur de la garantie (VNC) est inférieure à l'encours du prêt (LTV > 100 %) |
-| **SIB** | Société Ivoirienne de Banque |
+| **ICO** | Banque ICO |
 | **VNC (Valeur Nette Comptable)** | Valeur retenue de la garantie après application des décotes réglementaires (zone, ancienneté, occupation) |
 
 ---
 
-*Document établi par la Direction des Systèmes d'Information — Société Ivoirienne de Banque*  
+*Document établi par la Direction des Systèmes d'Information — Banque ICO*  
 *Conformément à la Circulaire BCEAO n°04-2017*  
 *Toute reproduction ou diffusion externe est soumise à autorisation préalable*

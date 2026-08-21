@@ -218,7 +218,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           <Landmark className="w-5 h-5 text-white" />
         </div>
         <div>
-          <p className="text-white text-sm font-bold leading-tight">SGH</p>
+          <p className="text-white text-sm font-bold leading-tight">SIGGHY</p>
           <p className="text-slate-400 text-xs leading-tight">Hypothèques</p>
         </div>
       </div>

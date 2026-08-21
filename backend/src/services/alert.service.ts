@@ -57,7 +57,7 @@ export async function generateAlerts(): Promise<Array<{ type: string; hypotheque
         dateEcheance: h.dateExpertise,
       });
     }
-    // 3. Alerte préventive bisannuelle : 3 mois avant la limite de 2 ans (TDR SIB)
+    // 3. Alerte préventive bisannuelle : 3 mois avant la limite de 2 ans (TDR ICO)
     else if (ageYears >= (24 - 3) / 12) {
       const dateRenewal = new Date(h.dateExpertise);
       dateRenewal.setFullYear(dateRenewal.getFullYear() + 2);

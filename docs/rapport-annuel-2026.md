@@ -1,10 +1,10 @@
-# ÉTAT DE REPORTING ANNUEL STANDARD
+﻿# ÉTAT DE REPORTING ANNUEL STANDARD
 ## Tableau de Bord des Garanties Hypothécaires Dépréciées
-### Exercice 2026 — Société Ivoirienne de Banque (SIB)
+### Exercice 2026 — Banque ICO
 
 ---
 
-**Établissement :** Société Ivoirienne de Banque (SIB)  
+**Établissement :** Banque ICO  
 **Période de référence :** Exercice 2025–2026  
 **Date d'arrêté :** 18 août 2026  
 **Référence réglementaire :** Circulaire n°04-2017 de la BCEAO  
@@ -206,7 +206,7 @@
 
 ---
 
-*Document généré par le Système de Gestion des Hypothèques (SGH) v2.0*  
-*Société Ivoirienne de Banque — Direction des Risques*  
+*Document généré par le SIGGHY v2.0*  
+*Banque ICO — Direction des Risques*  
 *Date d'édition : 18 août 2026*  
 *Référence : SGH-RAP-ANNUEL-2026-001*

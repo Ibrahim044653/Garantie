@@ -126,7 +126,7 @@ export default function NotificationsPage() {
             Notifications
           </h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            Centre de notifications du système SGH
+            Centre de notifications du système SIGGHY
           </p>
         </div>
         {unreadCount > 0 && (

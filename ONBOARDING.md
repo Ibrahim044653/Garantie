@@ -1,9 +1,9 @@
-# Cahier de Recette — SGH (Système de Gestion des Hypothèques)
-**Version :** 2.0 — Tests complets sur les Termes de Référence SIB
+﻿# Cahier de Recette — SGH (SIGGHY)
+**Version :** 2.0 — Tests complets sur les Termes de Référence ICO
 **Date :** 18 août 2026
 **Testeur :** Ibrahim Coulibaly — ibrahim.coulibaly@accenture.com
 **Environnement :** Production
-**Référentiel :** Circulaire n°04-2017 BCEAO + Termes de Référence SIB
+**Référentiel :** Circulaire n°04-2017 BCEAO + Termes de Référence ICO
 
 ---
 
@@ -11,7 +11,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Application | Système de Gestion des Hypothèques (SGH) |
+| Application | SIGGHY |
 | Frontend | https://sgh-frontend.vercel.app |
 | Backend API | https://sgh-backend-production-297b.up.railway.app/api |
 | Stack technique | Next.js 16 / Node.js Express / Prisma SQLite |
@@ -43,7 +43,7 @@
 | **Corrigés** | 5 | — |
 | **TOTAL** | 33 | 100 % |
 
-> **Version 2.0 (18/08/2026) :** Tests étendus à l'ensemble des spécifications fonctionnelles des Termes de Référence (TDR SIB). 5 anomalies détectées et corrigées lors de cette session (commits d6a2f52 et 8202697).
+> **Version 2.0 (18/08/2026) :** Tests étendus à l'ensemble des spécifications fonctionnelles des Termes de Référence (TDR ICO). 5 anomalies détectées et corrigées lors de cette session (commits d6a2f52 et 8202697).
 
 ---
 
@@ -113,7 +113,7 @@ Formule appliquée : **VNC = Valeur expertise × (1 − [D_Zone + D_Ancienneté 
 |---|---|---|---|---|
 | SEC-01 | Responsable Risques = lecture seule (Lecture seule pour les Risques) | GET autorisé, POST refusé (403) | GET /hypotheques → 200 ✅, POST /hypotheques → 403 Forbidden ✅ | ✅ PASS |
 | SEC-02 | Gestionnaire Garanties = modification (Modification pour les Garanties) | POST/PUT autorisés | Création de dossier par gestionnaire → HTTP 201 ✅ | ✅ PASS |
-| SEC-03 | Administrateur = accès total | Gestion utilisateurs + tout | GET /admin/users → 3 utilisateurs, toutes routes accessibles ✅ | ✅ PASS |
+| SEC-03 | Administrateur = accès total | Gestion utilisateurs + tout | GET /admin/users → 3 utilisateurs, toutes routes accesICOles ✅ | ✅ PASS |
 | SEC-04 | Accès sans token = rejeté | HTTP 401 | GET /hypotheques sans token → HTTP 401 Unauthorized ✅ | ✅ PASS |
 
 **Résultat module : 4/4 PASS**
@@ -137,7 +137,7 @@ Formule appliquée : **VNC = Valeur expertise × (1 − [D_Zone + D_Ancienneté 
 
 | ID | Cas de test | Attendu | Obtenu | Résultat |
 |---|---|---|---|---|
-| HIST-01 | Champ historique dans le modèle de données | Historique accessible | historique[] retourné dans chaque réponse GET /hypotheques/:id | ✅ PASS |
+| HIST-01 | Champ historique dans le modèle de données | Historique accesICOle | historique[] retourné dans chaque réponse GET /hypotheques/:id | ✅ PASS |
 | HIST-03 | Réévaluation bisannuelle avec motif (POST /:id/reevaluer) | Historique sauvegardé | Réévaluation 250M→300M avec motif "Réévaluation bisannuelle Circulaire 04-2017" : entrée historique créée, VNC recalculée 162.5M→195M, LTV 110.8%→92.3%, auteur traçable | ✅ PASS |
 | HIST-04 | Consultation historique (GET /:id/historique) | Liste des réévaluations | 1 entrée : valeurExpertise=300M, VNC=195M, LTV=92.3%, modifiePar=Mamadou Diallo — Traçabilité conforme à l'Audit Trail requis | ✅ PASS |
 
@@ -242,7 +242,7 @@ Formule appliquée : **VNC = Valeur expertise × (1 − [D_Zone + D_Ancienneté 
 | Anomalies bloquantes | ✅ Aucune |
 | Anomalies corrigées | 5 (commits d6a2f52 et 8202697) |
 
-**→ Application VALIDÉE — Conforme aux Termes de Référence SIB et à la Circulaire n°04-2017 BCEAO.**
+**→ Application VALIDÉE — Conforme aux Termes de Référence ICO et à la Circulaire n°04-2017 BCEAO.**
 
 Toutes les fonctionnalités spécifiées dans les TDR sont implémentées et testées. Les 5 anomalies détectées lors des tests ont été corrigées immédiatement et redéployées en production.
 
@@ -259,4 +259,4 @@ Toutes les fonctionnalités spécifiées dans les TDR sont implémentées et tes
 
 ---
 
-*Cahier de recette v2.0 — Tests sur Termes de Référence SIB — 33 cas exécutés en production — 18 août 2026.*
+*Cahier de recette v2.0 — Tests sur Termes de Référence ICO — 33 cas exécutés en production — 18 août 2026.*

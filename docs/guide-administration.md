@@ -1,5 +1,5 @@
-# Guide d'Administration — SGH (Système de Gestion des Hypothèques)
-**Société Ivoirienne de Banque (SIB)**
+﻿# Guide d'Administration — SGH (SIGGHY)
+**Banque ICO**
 Version 2.0 — Août 2026
 
 ---
@@ -21,7 +21,7 @@ Version 2.0 — Août 2026
 
 ## 1. Vue d'ensemble du système
 
-Le SGH est une application web de gestion du portefeuille hypothécaire de la SIB. Elle permet le suivi des garanties immobilières, la réévaluation des biens selon la Circulaire 04-2017 de la BCEAO, la génération d'alertes automatiques et l'export de rapports réglementaires.
+Le SGH est une application web de gestion du portefeuille hypothécaire de la Banque ICO. Elle permet le suivi des garanties immobilières, la réévaluation des biens selon la Circulaire 04-2017 de la BCEAO, la génération d'alertes automatiques et l'export de rapports réglementaires.
 
 ### Architecture
 
@@ -36,7 +36,7 @@ Le SGH est une application web de gestion du portefeuille hypothécaire de la SI
 ### URLs de production
 
 - **Frontend (Vercel)** : https://sgh-frontend.vercel.app
-- **Backend** : Railway (URL interne — accessible via le proxy Vercel `/api/*`)
+- **Backend** : Railway (URL interne — accesICOle via le proxy Vercel `/api/*`)
 - **Health check (via proxy)** : https://sgh-frontend.vercel.app/api/health
 
 ### Structure du dépôt
@@ -139,7 +139,7 @@ cd frontend
 npm run dev
 ```
 
-L'application est accessible sur **http://localhost:3000**.
+L'application est accesICOle sur **http://localhost:3000**.
 
 #### Outils de développement utiles
 
@@ -187,7 +187,7 @@ restartPolicyMaxRetries = 5
 |---|---|
 | `NODE_ENV` | `production` |
 | `PORT` | `3001` |
-| `JWT_SECRET` | `sgh_sib_prod_2026_secret_key` |
+| `JWT_SECRET` | `sgh_ICO_prod_2026_secret_key` |
 | `JWT_EXPIRES_IN` | `1h` |
 | `FRONTEND_URL` | `https://sgh-frontend.vercel.app` |
 | `DATABASE_URL` | Injectée automatiquement par Railway (PostgreSQL) |
@@ -340,7 +340,7 @@ Tous les champs sont optionnels. Le mot de passe est rehashé automatiquement si
 DELETE /api/admin/users/:id
 ```
 
-> Attention : la suppression est irréversible. Préférer la modification du rôle pour désactiver un compte.
+> Attention : la suppression est irréverICOle. Préférer la modification du rôle pour désactiver un compte.
 
 ### 4.4 Authentification MFA (TOTP)
 
@@ -562,7 +562,7 @@ railway run npx prisma migrate reset --force
 
 ### 8.5 Les alertes ne sont pas générées
 
-**Symptôme** : Aucune alerte visible dans l'interface alors que des hypothèques arrivent à échéance.
+**Symptôme** : Aucune alerte viICOle dans l'interface alors que des hypothèques arrivent à échéance.
 
 **Vérifications** :
 ```bash
@@ -571,7 +571,7 @@ railway logs | grep -i "alert generation"
 
 **Solution** : Si le log `"Alert generation completed at startup"` est absent, redémarrer le service Railway.
 
-### 8.6 Fichiers uploadés inaccessibles
+### 8.6 Fichiers uploadés inaccesICOles
 
 **Symptôme** : Les PDF d'expertise renvoient une erreur 404.
 
@@ -619,7 +619,7 @@ railway logs | grep -i "alert generation"
 2. **Identifier** le compte compromis via les logs Railway
 3. **Supprimer ou désactiver** le compte via `DELETE /api/admin/users/:id`
 4. **Vérifier** l'historique des modifications dans la table `HistoriqueValeur`
-5. **Notifier** la DSI de la SIB
+5. **Notifier** la DSI de la Banque ICO
 
 ---
 
@@ -672,5 +672,5 @@ curl -H "Authorization: Bearer TOKEN" https://sgh-backend-production-297b.up.rai
 
 ---
 
-*Document maintenu par l'équipe technique SIB — ibrahim.coulibaly@accenture.com*
+*Document maintenu par l'équipe technique ICO — ibrahim.coulibaly@accenture.com*
 *Dernière mise à jour : août 2026*

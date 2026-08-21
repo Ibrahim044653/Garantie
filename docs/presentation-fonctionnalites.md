@@ -1,7 +1,7 @@
-# Système de Gestion des Hypothèques (SGH)
+﻿# SIGGHY
 ## Présentation Complète des Fonctionnalités par Profil Utilisateur
 
-**Établissement :** Société Ivoirienne de Banque (SIB)  
+**Établissement :** Banque ICO  
 **Application :** https://sgh-frontend.vercel.app  
 **Référence réglementaire :** Circulaire BCEAO n°04-2017  
 **Version :** SGH v2.0 — Août 2026
@@ -10,9 +10,9 @@
 
 ## INTRODUCTION
 
-Le SGH (Système de Gestion des Hypothèques) est une application web sécurisée développée pour assurer la conformité de la SIB avec la Circulaire n°04-2017 de la BCEAO, relative à la gestion des garanties hypothécaires dans les établissements de crédit de l'UEMOA.
+Le SGH (SIGGHY) est une application web sécurisée développée pour assurer la conformité de la Banque ICO avec la Circulaire n°04-2017 de la BCEAO, relative à la gestion des garanties hypothécaires dans les établissements de crédit de l'UEMOA.
 
-L'application est accessible à l'adresse : **https://sgh-frontend.vercel.app**
+L'application est accesICOle à l'adresse : **https://sgh-frontend.vercel.app**
 
 Elle repose sur un système de contrôle d'accès basé sur les rôles (RBAC), garantissant que chaque utilisateur n'accède qu'aux fonctionnalités correspondant à sa fonction au sein de la banque.
 
@@ -250,7 +250,7 @@ Chaque dossier dispose d'un historique complet de toutes les modifications de va
 
 ### 7.1 Rapport annuel
 
-Accessible via le menu **Reporting**, le rapport annuel présente :
+AccesICOle via le menu **Reporting**, le rapport annuel présente :
 
 - Synthèse du portefeuille (VNC totale, LTV moyen, taux de shortfall)
 - Tableau détaillé de tous les dossiers avec calculs
@@ -298,7 +298,7 @@ Accessible via le menu **Reporting**, le rapport annuel présente :
 1. Cliquer sur **Supprimer** à côté du compte
 2. Confirmer la suppression
 
-> Il est impossible de supprimer son propre compte administrateur.
+> Il est imposICOle de supprimer son propre compte administrateur.
 
 ### 8.5 Comptes par défaut du système
 
@@ -342,7 +342,7 @@ Le Gestionnaire Garanties est le principal utilisateur opérationnel du système
 
 ---
 
-## Fonctionnalités accessibles
+## Fonctionnalités accesICOles
 
 ### Authentification
 - Connexion standard par email/mot de passe
@@ -395,7 +395,7 @@ Le Responsable Risques surveille la qualité du portefeuille de garanties. Il an
 
 ---
 
-## Fonctionnalités accessibles
+## Fonctionnalités accesICOles
 
 ### Authentification
 - Connexion standard par email/mot de passe
@@ -442,7 +442,7 @@ Le service Engagements intervient dans le processus de mise en place des crédit
 
 ---
 
-## Fonctionnalités accessibles
+## Fonctionnalités accesICOles
 
 ### Authentification
 - Connexion standard par email/mot de passe
@@ -488,7 +488,7 @@ L'Audit Interne assure le contrôle de la conformité réglementaire (Circulaire
 
 ---
 
-## Fonctionnalités accessibles
+## Fonctionnalités accesICOles
 
 ### Authentification
 - Connexion standard par email/mot de passe
@@ -658,6 +658,6 @@ Le module IA fournit des analyses prédictives et des recommandations basées su
 
 ---
 
-*Société Ivoirienne de Banque — SGH v2.0*  
+*Banque ICO — SGH v2.0*  
 *Document généré le 18 août 2026*  
 *Référence : SGH-PRES-FONC-2026-001*

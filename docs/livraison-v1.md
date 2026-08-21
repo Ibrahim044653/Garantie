@@ -1,6 +1,6 @@
-# DOCUMENT DE LIVRAISON — SGH v1.0.0
-## Système de Gestion des Hypothèques
-### Société Ivoirienne de Banque (SIB)
+﻿# DOCUMENT DE LIVRAISON — SGH v1.0.0
+## SIGGHY
+### Banque ICO
 
 ---
 
@@ -87,7 +87,7 @@ Projet-Garantie/
 |---|---|
 | NODE_ENV | production |
 | PORT | 3001 |
-| JWT_SECRET | sgh_sib_prod_2026_secret_key |
+| JWT_SECRET | sgh_ICO_prod_2026_secret_key |
 | FRONTEND_URL | https://sgh-frontend.vercel.app |
 | DATABASE_URL | Injectée automatiquement par Railway (PostgreSQL) |
 
@@ -149,13 +149,13 @@ Projet-Garantie/
 ### 4.8 Simulation & Prévision (nouveau en v2)
 - Simulateur de réévaluation individuelle (impact VNC/LTV sans modification réelle)
 - Stress test portefeuille (décote de marché globale paramétrable)
-- Accessible à : Admin, Gestionnaire, Responsable Risques
+- AccesICOle à : Admin, Gestionnaire, Responsable Risques
 
 ### 4.9 Intelligence Artificielle (nouveau en v2)
 - Score de risque automatique par dossier (0–100)
 - Détection d'anomalies (valeurs incohérentes, LTV aberrants)
 - Recommandations priorisées par urgence
-- Accessible à : Admin, Gestionnaire, Responsable Risques, Audit Interne
+- AccesICOle à : Admin, Gestionnaire, Responsable Risques, Audit Interne
 
 ### 4.10 Modules complémentaires (v2)
 - GED (Gestion Électronique des Documents) — upload et consultation des pièces jointes
@@ -259,6 +259,6 @@ GitHub: Ibrahim044653/Projet-Garantie
 
 ---
 
-*SGH v1.0.0 — Société Ivoirienne de Banque*  
+*SGH v1.0.0 — Banque ICO*  
 *Document de livraison — 19 août 2026*  
 *Référence : SGH-LIVRAISON-V1-2026*

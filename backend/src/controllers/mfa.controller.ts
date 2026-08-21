@@ -20,8 +20,8 @@ export const setupMfa = async (req: AuthRequest, res: Response): Promise<void> =
     }
 
     const secret = speakeasy.generateSecret({
-      name: `SGH Hypothèques (${user.email})`,
-      issuer: 'Société Ivoirienne de Banque',
+      name: `SIGGHY (${user.email})`,
+      issuer: 'Banque ICO',
       length: 32,
     });
 
