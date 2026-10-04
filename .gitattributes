@@ -1,0 +1,10 @@
+# Sans ceci, git tente une conversion de fins de ligne sur ces fichiers et
+# les corrompt au clonage lorsque core.autocrlf est actif (cas par defaut
+# sous Windows).
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.xlsx binary
+*.xls  binary
+*.db   binary
