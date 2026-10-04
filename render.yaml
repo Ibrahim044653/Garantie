@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: sgh-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    # db push + seed au build (une fois par deploiement) et non au start,
+    # sinon chaque reveil du plan gratuit rejouerait tout le seed.
+    buildCommand: npm install --include=dev && npm run build && npx prisma db push --accept-data-loss && node prisma/seed.js
+    startCommand: node dist/index.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://sgh-frontend.vercel.app
+      - key: LOG_LEVEL
+        value: info
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false

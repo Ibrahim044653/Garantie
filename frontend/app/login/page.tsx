@@ -6,6 +6,23 @@ import { useAuth } from '@/contexts/AuthContext';
 import { authApi, mfaApi } from '@/lib/api';
 import { Landmark, Eye, EyeOff, AlertCircle, ShieldCheck } from 'lucide-react';
 
+// Le backend renvoie ses erreurs sous `error`, pas `message`. Sans ce
+// mapping, un 423 (compte verrouille) s'affichait comme "identifiants
+// incorrects", tout comme un backend hors ligne.
+function messageErreur(err: unknown, parDefaut: string): string {
+  const e = err as {
+    response?: { status?: number; data?: { error?: string; message?: string } };
+  };
+  if (!e?.response) {
+    return 'Serveur injoignable. Verifiez votre connexion ou reessayez plus tard.';
+  }
+  const status = e.response.status ?? 0;
+  if (status === 404 || status >= 500) {
+    return `Service indisponible (erreur ${status}). Le serveur ne repond pas.`;
+  }
+  return e.response.data?.error ?? e.response.data?.message ?? parDefaut;
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,10 +65,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? 'Identifiants incorrects. Veuillez réessayer.';
-      setError(msg);
+      setError(messageErreur(err, 'Identifiants incorrects. Veuillez réessayer.'));
     } finally {
       setLoading(false);
     }
@@ -72,10 +86,7 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(data.user));
       router.push('/dashboard');
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? 'Code incorrect ou expiré. Veuillez réessayer.';
-      setError(msg);
+      setError(messageErreur(err, 'Code incorrect ou expiré. Veuillez réessayer.'));
     } finally {
       setLoading(false);
     }
