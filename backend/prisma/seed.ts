@@ -18,11 +18,11 @@ async function main() {
     bcrypt.hash('Audit@1234', 10),
   ]);
 
-  const admin = await prisma.user.upsert({ where: { email: 'admin@banque.sn' }, update: {}, create: { email: 'admin@banque.sn', password: pw_admin, nom: 'Diallo', prenom: 'Mamadou', role: 'ADMIN' } });
-  const gest  = await prisma.user.upsert({ where: { email: 'gestionnaire@banque.sn' }, update: {}, create: { email: 'gestionnaire@banque.sn', password: pw_gest, nom: 'Ndiaye', prenom: 'Fatou', role: 'GESTIONNAIRE_GARANTIES' } });
-  const risq  = await prisma.user.upsert({ where: { email: 'risques@banque.sn' }, update: {}, create: { email: 'risques@banque.sn', password: pw_risq, nom: 'Sy', prenom: 'Ousmane', role: 'RESPONSABLE_RISQUES' } });
-  const eng   = await prisma.user.upsert({ where: { email: 'engagements@banque.sn' }, update: {}, create: { email: 'engagements@banque.sn', password: pw_eng, nom: 'Konaté', prenom: 'Seydou', role: 'ENGAGEMENTS' } });
-  await prisma.user.upsert({ where: { email: 'audit@banque.sn' }, update: {}, create: { email: 'audit@banque.sn', password: pw_audit, nom: 'Traoré', prenom: 'Aminata', role: 'AUDIT_INTERNE' } });
+  const admin = await prisma.user.upsert({ where: { email: 'admin@banque.sn' }, update: { password: pw_admin, failedLoginAttempts: 0, lockedUntil: null }, create: { email: 'admin@banque.sn', password: pw_admin, nom: 'Diallo', prenom: 'Mamadou', role: 'ADMIN' } });
+  const gest  = await prisma.user.upsert({ where: { email: 'gestionnaire@banque.sn' }, update: { password: pw_gest, failedLoginAttempts: 0, lockedUntil: null }, create: { email: 'gestionnaire@banque.sn', password: pw_gest, nom: 'Ndiaye', prenom: 'Fatou', role: 'GESTIONNAIRE_GARANTIES' } });
+  const risq  = await prisma.user.upsert({ where: { email: 'risques@banque.sn' }, update: { password: pw_risq, failedLoginAttempts: 0, lockedUntil: null }, create: { email: 'risques@banque.sn', password: pw_risq, nom: 'Sy', prenom: 'Ousmane', role: 'RESPONSABLE_RISQUES' } });
+  const eng   = await prisma.user.upsert({ where: { email: 'engagements@banque.sn' }, update: { password: pw_eng, failedLoginAttempts: 0, lockedUntil: null }, create: { email: 'engagements@banque.sn', password: pw_eng, nom: 'Konaté', prenom: 'Seydou', role: 'ENGAGEMENTS' } });
+  await prisma.user.upsert({ where: { email: 'audit@banque.sn' }, update: { password: pw_audit, failedLoginAttempts: 0, lockedUntil: null }, create: { email: 'audit@banque.sn', password: pw_audit, nom: 'Traoré', prenom: 'Aminata', role: 'AUDIT_INTERNE' } });
   console.log('✅ 5 utilisateurs');
 
   // ─── 2. EXPERTS AGRÉES ─────────────────────────────────────────────────────
