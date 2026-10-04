@@ -1,7 +1,32 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { generateAlerts } from '../services/alert.service';
+import { logger } from '../services/logger';
 
 const prisma = new PrismaClient();
+
+// Appele par le cron Vercel. En serverless il n'y a pas de process long :
+// le setInterval de 24h place dans le callback de app.listen ne s'execute
+// jamais, donc les alertes ne se generaient plus du tout.
+export async function genererAlertes(req: Request, res: Response): Promise<void> {
+  // Fermeture par defaut : sans secret configure, l'endpoint reste clos
+  // plutot que de laisser n'importe qui declencher la generation.
+  const secret = process.env.CRON_SECRET;
+  if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
+    res.status(401).json({ error: 'Non autorisé' });
+    return;
+  }
+
+  try {
+    const alertes = await generateAlerts();
+    const total = Array.isArray(alertes) ? alertes.length : 0;
+    logger.info(`Generation alertes par cron : ${total} alerte(s)`);
+    res.json({ generees: total });
+  } catch (err) {
+    logger.error('Generation alertes par cron echouee:', err);
+    res.status(500).json({ error: 'Génération échouée' });
+  }
+}
 
 export async function getAll(req: Request, res: Response): Promise<void> {
   try {
