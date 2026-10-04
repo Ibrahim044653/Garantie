@@ -106,6 +106,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     logger.info(`User logged in: ${user.email} (${user.role})`);
 
     res.json({
+      token,
       user: {
         id: user.id,
         email: user.email,
