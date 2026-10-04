@@ -39,6 +39,12 @@ import { notifyShortfall, notifyExpertiseExpiring } from './services/notificatio
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Derriere le proxy Vercel, req.ip vaut l'IP du proxy sans ceci : tous
+// les clients partageraient le meme compteur de rate limiting. On ne
+// fait confiance qu'a un seul saut, pour ne pas laisser un client
+// falsifier son IP via X-Forwarded-For.
+if (process.env.VERCEL) app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
