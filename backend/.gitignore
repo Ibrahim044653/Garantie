@@ -6,3 +6,6 @@ prisma/hypotheque.db-journal
 logs/
 uploads/*
 !uploads/.gitkeep
+
+.vercel
+.env*

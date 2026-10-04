@@ -20,16 +20,23 @@ export const logger = winston.createLogger({
         })
       ),
     }),
-    new winston.transports.File({
-      filename: path.join(logDir, 'error.log'),
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-    new winston.transports.File({
-      filename: path.join(logDir, 'combined.log'),
-      maxsize: 5242880,
-      maxFiles: 5,
-    }),
+    // Sur Vercel le systeme de fichiers est en lecture seule : creer le
+    // dossier de logs fait planter le process au demarrage. La sortie
+    // console y est de toute facon collectee.
+    ...(process.env.VERCEL
+      ? []
+      : [
+          new winston.transports.File({
+            filename: path.join(logDir, 'error.log'),
+            level: 'error',
+            maxsize: 5242880, // 5MB
+            maxFiles: 5,
+          }),
+          new winston.transports.File({
+            filename: path.join(logDir, 'combined.log'),
+            maxsize: 5242880,
+            maxFiles: 5,
+          }),
+        ]),
   ],
 });

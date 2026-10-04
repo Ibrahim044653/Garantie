@@ -7,8 +7,12 @@ import { uploadReevaluationPhotos } from '../controllers/upload.controller';
 
 export const uploadRouter = Router();
 
-// Dossier de destination des photos de réévaluation
-const reevaluationPhotosDir = path.join(__dirname, '..', '..', 'uploads', 'reevaluations');
+// Dossier de destination des photos de réévaluation.
+// Sur Vercel seul /tmp est accessible en ecriture, et son contenu est
+// ephemere : les photos n'y survivent pas au-dela de l'instance.
+const reevaluationPhotosDir = process.env.VERCEL
+  ? path.join('/tmp', 'uploads', 'reevaluations')
+  : path.join(__dirname, '..', '..', 'uploads', 'reevaluations');
 
 // Créer le dossier s'il n'existe pas
 if (!fs.existsSync(reevaluationPhotosDir)) {

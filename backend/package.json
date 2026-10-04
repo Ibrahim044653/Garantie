@@ -4,9 +4,10 @@
   "description": "Système de Gestion des Hypothèques - Backend API",
   "main": "dist/index.js",
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "npx prisma generate && npx tsc",
-    "start": "npx prisma migrate deploy && node dist/index.js",
+    "start": "node dist/index.js",
     "db:migrate": "npx prisma migrate dev --name init",
     "db:seed": "npx prisma db seed",
     "db:reset": "npx prisma migrate reset --force && npx prisma db seed",
