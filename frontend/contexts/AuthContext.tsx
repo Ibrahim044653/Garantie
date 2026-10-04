@@ -16,6 +16,10 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  /** Ouvre la session apres un login reussi (y compris via MFA). Ecrit le
+   *  stockage ET l'etat React : ecrire le stockage seul laisse
+   *  isAuthenticated a false, et le layout renvoie vers /login. */
+  setSession: (user: User, token?: string) => void;
   logout: () => Promise<void>;
   hasRole: (...roles: UserRole[]) => boolean;
   canEdit: () => boolean;
@@ -84,13 +88,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('sgh:unauthorized', handle);
   }, [router]);
 
+  const setSession = useCallback((loggedUser: User, token?: string) => {
+    if (token) sessionStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(loggedUser));
+    setUser(loggedUser);
+  }, []);
+
   const login = async (email: string, password: string) => {
     const res = await authApi.login(email, password);
     const { token, user: loggedUser } = res.data;
     if (loggedUser) {
-      if (token) sessionStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(loggedUser));
-      setUser(loggedUser);
+      setSession(loggedUser, token);
       router.push('/dashboard');
     }
   };
@@ -122,6 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: user !== null,
         login,
+        setSession,
         logout,
         hasRole,
         canEdit,

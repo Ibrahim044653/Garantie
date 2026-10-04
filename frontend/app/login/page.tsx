@@ -35,7 +35,7 @@ export default function LoginPage() {
   const [userId, setUserId] = useState<number | null>(null);
   const [mfaCode, setMfaCode] = useState('');
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, setSession } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -60,8 +60,7 @@ export default function LoginPage() {
         setMfaStep(true);
       } else {
         // Normal login — store token + user and navigate
-        sessionStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        setSession(data.user, data.token);
         router.push('/dashboard');
       }
     } catch (err: unknown) {
@@ -82,8 +81,7 @@ export default function LoginPage() {
     try {
       const res = await mfaApi.validate(userId!, mfaCode);
       const data = res.data;
-      sessionStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      setSession(data.user, data.token);
       router.push('/dashboard');
     } catch (err: unknown) {
       setError(messageErreur(err, 'Code incorrect ou expiré. Veuillez réessayer.'));
