@@ -22,7 +22,10 @@ async function seedUsers() {
     const hash = await bcrypt.hash(u.password, 10);
     await prisma.user.upsert({
       where:  { email: u.email },
-      update: { password: hash, failedLoginAttempts: 0, lockedUntil: null },
+      // update volontairement vide : ce seed ne doit jamais ecraser le mot
+      // de passe d'un compte existant, ni lever un verrouillage en cours.
+      // Sur une base vierge, create applique deja le bon mot de passe.
+      update: {},
       create: { email: u.email, password: hash, nom: u.nom, prenom: u.prenom, role: u.role },
     });
   }

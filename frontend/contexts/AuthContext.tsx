@@ -19,7 +19,7 @@ interface AuthContextValue {
   /** Ouvre la session apres un login reussi (y compris via MFA). Ecrit le
    *  stockage ET l'etat React : ecrire le stockage seul laisse
    *  isAuthenticated a false, et le layout renvoie vers /login. */
-  setSession: (user: User, token?: string) => void;
+  setSession: (user: User, token?: string) => boolean;
   logout: () => Promise<void>;
   hasRole: (...roles: UserRole[]) => boolean;
   canEdit: () => boolean;
@@ -88,10 +88,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('sgh:unauthorized', handle);
   }, [router]);
 
-  const setSession = useCallback((loggedUser: User, token?: string) => {
+  const setSession = useCallback((loggedUser: User, token?: string): boolean => {
+    // Sans utilisateur, isAuthenticated (user !== null) passerait a true avec
+    // un user undefined : le layout s'afficherait puis hasRole leverait sur
+    // user.role. On refuse plutot d'ouvrir la session.
+    if (!loggedUser) return false;
     if (token) sessionStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(loggedUser));
     setUser(loggedUser);
+    return true;
   }, []);
 
   const login = async (email: string, password: string) => {

@@ -4,9 +4,14 @@ services:
     runtime: node
     plan: free
     rootDir: backend
-    # db push + seed au build (une fois par deploiement) et non au start,
-    # sinon chaque reveil du plan gratuit rejouerait tout le seed.
-    buildCommand: npm install --include=dev && npm run build && npx prisma db push --accept-data-loss && node prisma/seed.js
+    # migrate deploy, et non db push : les migrations sont versionnees dans
+    # prisma/migrations. db push --accept-data-loss aligne la base sur le
+    # schema sans historique et supprime sans confirmation toute colonne
+    # absente du schema.
+    # Le seed n'est volontairement PAS lance ici : il contient des comptes de
+    # demonstration et n'a rien a faire dans un build de production. Pour une
+    # base de demonstration, lancer `npm run db:seed` manuellement.
+    buildCommand: npm install --include=dev && npm run build && node prisma/baseline.js && npx prisma migrate deploy
     startCommand: node dist/index.js
     healthCheckPath: /api/health
     envVars:
@@ -16,7 +21,15 @@ services:
         value: https://sgh-frontend.vercel.app
       - key: LOG_LEVEL
         value: info
+      # Sans ceci, req.ip vaut l'IP du repartiteur de charge Render et tous
+      # les clients partagent le meme compteur de rate limiting.
+      - key: TRUST_PROXY
+        value: "1"
       - key: JWT_SECRET
+        generateValue: true
+      # Requis par GET /api/alertes/generer. Sans lui le cron renvoie 401 et
+      # les alertes ne sont jamais rafraichies.
+      - key: CRON_SECRET
         generateValue: true
       - key: DATABASE_URL
         sync: false

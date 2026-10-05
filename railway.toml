@@ -1,9 +1,15 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd backend && npm install --include=dev && npm run build"
+# migrate deploy, et non db push : les migrations sont versionnees dans
+# prisma/migrations. db push --accept-data-loss supprimerait sans
+# confirmation toute colonne absente du schema.
+buildCommand = "cd backend && npm install --include=dev && npm run build && node prisma/baseline.js && npx prisma migrate deploy"
 
 [deploy]
-startCommand = "cd backend && npx prisma db push --accept-data-loss && node prisma/seed.js && node dist/index.js"
+# Le seed n'est volontairement plus lance au demarrage : il contient des
+# comptes de demonstration, et le rejouer a chaque redemarrage n'a pas de
+# sens en production. Lancer `npm run db:seed` manuellement si besoin.
+startCommand = "cd backend && node dist/index.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"

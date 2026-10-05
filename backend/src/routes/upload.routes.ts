@@ -1,34 +1,15 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 import { authenticate } from '../middleware/auth.middleware';
-import { uploadReevaluationPhotos } from '../controllers/upload.controller';
+import { uploadReevaluationPhotos, getReevaluationPhoto } from '../controllers/upload.controller';
 
 export const uploadRouter = Router();
 
-// Dossier de destination des photos de réévaluation.
-// Sur Vercel seul /tmp est accessible en ecriture, et son contenu est
-// ephemere : les photos n'y survivent pas au-dela de l'instance.
-const reevaluationPhotosDir = process.env.VERCEL
-  ? path.join('/tmp', 'uploads', 'reevaluations')
-  : path.join(__dirname, '..', '..', 'uploads', 'reevaluations');
-
-// Créer le dossier s'il n'existe pas
-if (!fs.existsSync(reevaluationPhotosDir)) {
-  fs.mkdirSync(reevaluationPhotosDir, { recursive: true });
-}
-
-const reevaluationStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, reevaluationPhotosDir);
-  },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `reevaluation-photo-${uniqueSuffix}${ext}`);
-  },
-});
+// Stockage en memoire : le contenu part ensuite en base. Ecrire sur disque
+// ne sert a rien ici, le systeme de fichiers des hebergements utilises est
+// ephemere et aucune route ne servait le dossier uploads.
+const reevaluationStorage = multer.memoryStorage();
 
 const imageFilter = (_req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowed = ['.jpg', '.jpeg', '.png'];
@@ -58,3 +39,6 @@ uploadRouter.post(
   uploadReevaluationPhotosMiddleware.array('photos', 5),
   uploadReevaluationPhotos,
 );
+
+// GET /api/uploads/reevaluation-photos/:id
+uploadRouter.get('/reevaluation-photos/:id', getReevaluationPhoto);

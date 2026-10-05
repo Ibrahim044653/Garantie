@@ -11,7 +11,14 @@ import { Landmark, Eye, EyeOff, AlertCircle, ShieldCheck } from 'lucide-react';
 // incorrects", tout comme un backend hors ligne.
 function messageErreur(err: unknown, parDefaut: string): string {
   const e = err as {
-    response?: { status?: number; data?: { error?: string; message?: string } };
+    response?: {
+      status?: number;
+      data?: {
+        error?: string;
+        message?: string;
+        details?: Array<{ field?: string; message?: string }>;
+      };
+    };
   };
   if (!e?.response) {
     return 'Serveur injoignable. Verifiez votre connexion ou reessayez plus tard.';
@@ -20,6 +27,11 @@ function messageErreur(err: unknown, parDefaut: string): string {
   if (status === 404 || status >= 500) {
     return `Service indisponible (erreur ${status}). Le serveur ne repond pas.`;
   }
+  // Le middleware de validation repond 400 avec un `error` generique en
+  // anglais et le detail utile dans `details`. Sans ceci l'utilisateur lit
+  // "Validation error" sans savoir quel champ corriger.
+  const detail = e.response.data?.details?.[0]?.message;
+  if (detail) return detail;
   return e.response.data?.error ?? e.response.data?.message ?? parDefaut;
 }
 
@@ -58,10 +70,10 @@ export default function LoginPage() {
         // Backend requires MFA — switch to MFA step
         setUserId(data.userId);
         setMfaStep(true);
-      } else {
-        // Normal login — store token + user and navigate
-        setSession(data.user, data.token);
+      } else if (setSession(data.user, data.token)) {
         router.push('/dashboard');
+      } else {
+        setError('Réponse inattendue du serveur. Veuillez réessayer.');
       }
     } catch (err: unknown) {
       setError(messageErreur(err, 'Identifiants incorrects. Veuillez réessayer.'));
@@ -81,8 +93,11 @@ export default function LoginPage() {
     try {
       const res = await mfaApi.validate(userId!, mfaCode);
       const data = res.data;
-      setSession(data.user, data.token);
-      router.push('/dashboard');
+      if (setSession(data.user, data.token)) {
+        router.push('/dashboard');
+      } else {
+        setError('Réponse inattendue du serveur. Veuillez réessayer.');
+      }
     } catch (err: unknown) {
       setError(messageErreur(err, 'Code incorrect ou expiré. Veuillez réessayer.'));
     } finally {

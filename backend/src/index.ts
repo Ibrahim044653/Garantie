@@ -33,17 +33,16 @@ import { importRouter } from './routes/import.routes';
 import { simulationRouter } from './routes/simulation.routes';
 import { iaRouter } from './routes/ia.routes';
 import { validateCsrf } from './middleware/csrf.middleware';
-import { generateAlerts } from './services/alert.service';
-import { notifyShortfall, notifyExpertiseExpiring } from './services/notification.service';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Derriere le proxy Vercel, req.ip vaut l'IP du proxy sans ceci : tous
-// les clients partageraient le meme compteur de rate limiting. On ne
-// fait confiance qu'a un seul saut, pour ne pas laisser un client
-// falsifier son IP via X-Forwarded-For.
-if (process.env.VERCEL) app.set('trust proxy', 1);
+// Derriere un proxy, req.ip vaut l'IP du proxy sans ceci : tous les
+// clients partageraient le meme compteur de rate limiting. Le nombre de
+// sauts reste limite, pour ne pas laisser un client falsifier son IP via
+// X-Forwarded-For. VERCEL est reconnu car la plateforme le definit seule.
+const sautsProxy = process.env.TRUST_PROXY ?? (process.env.VERCEL ? '1' : '');
+if (sautsProxy) app.set('trust proxy', Number(sautsProxy) || 1);
 
 // Security middleware
 app.use(helmet({
@@ -54,13 +53,15 @@ app.use(helmet({
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',');
 app.use(cors({
   origin: (origin, callback) => {
+    // Egalite stricte, et non startsWith : un prefixe laisserait passer
+    // https://origine-autorisee.exemple.attaquant.com, qui obtiendrait alors
+    // un acces credentials aux donnees de l'utilisateur connecte.
     const ok = !origin ||
-      allowedOrigins.some((o) => origin.startsWith(o.trim()));
-    if (ok) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+      allowedOrigins.some((o) => o.trim() === origin);
+    // Refus sans exception : lever ici remonte au gestionnaire d'erreurs
+    // global et renvoie un 500 bruyant. Omettre l'en-tete suffit, le
+    // navigateur bloque la reponse de lui-meme.
+    callback(null, ok);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -122,48 +123,12 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
-app.listen(PORT, async () => {
+// La generation d'alertes est declenchee par le cron quotidien, via
+// GET /api/alertes/generer. La faire aussi au demarrage rejouerait tout
+// le traitement a chaque reveil d'instance : generateAlerts supprime les
+// alertes non lues avant de les recreer, et renverrait les courriels.
+app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
-
-  // Run alert generation at startup
-  try {
-    const alerts = await generateAlerts();
-    logger.info('Alert generation completed at startup');
-    // Envoyer des notifications pour les alertes critiques
-    if (alerts && Array.isArray(alerts)) {
-      for (const { type, hypotheque } of alerts) {
-        try {
-          if (type === 'SHORTFALL') await notifyShortfall(hypotheque);
-          else if (type === 'EXPERTISE_BIENTOT_EXPIREE') await notifyExpertiseExpiring(hypotheque);
-        } catch (ne) {
-          logger.error('Notification post-alerte échouée:', ne);
-        }
-      }
-    }
-  } catch (err) {
-    logger.error('Alert generation failed at startup:', err);
-  }
-
-  // Schedule daily alert generation (every 24h)
-  setInterval(async () => {
-    try {
-      const alerts = await generateAlerts();
-      logger.info('Daily alert generation completed');
-      if (alerts && Array.isArray(alerts)) {
-        for (const { type, hypotheque } of alerts) {
-          try {
-            if (type === 'SHORTFALL') await notifyShortfall(hypotheque);
-            else if (type === 'EXPERTISE_BIENTOT_EXPIREE') await notifyExpertiseExpiring(hypotheque);
-          } catch (ne) {
-            logger.error('Notification post-alerte échouée:', ne);
-          }
-        }
-      }
-    } catch (err) {
-      logger.error('Daily alert generation failed:', err);
-    }
-  }, 24 * 60 * 60 * 1000);
 });
 
 export default app;

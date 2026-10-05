@@ -127,6 +127,7 @@ model User {
   notifications     Notification[]            @relation("UserNotifications")
   pushSubscriptions WebPushSubscription[]     @relation("UserPushSubs")
   reevaluationsCreees ReevaluationExpertise[] @relation("ReevaluationsCreees")
+  photosReevaluation  ReevaluationPhoto[]     @relation("PhotosReevaluation")
   exportsPlanifies  ExportPlanifie[]          @relation("ExportsPlanifies")
   dashboardConfig   DashboardConfig?          @relation("UserDashboardConfig")
   mainlevees           MainleveeRadiation[]  @relation("MainleveeCreatedBy")
@@ -607,6 +608,23 @@ model ReevaluationExpertise {
 
   @@index([hypothequeId])
   @@index([createdAt])
+}
+
+// Le contenu des photos est stocke en base, comme DocumentVersion.fileContent :
+// le systeme de fichiers des hebergements utilises est ephemere, les fichiers
+// deposes sur disque disparaissent avec l'instance.
+model ReevaluationPhoto {
+  id           Int      @id @default(autoincrement())
+  fileName     String
+  mimeType     String
+  taille       Int
+  fileContent  Bytes
+  uploadedById Int
+  createdAt    DateTime @default(now()) @db.Timestamptz
+
+  uploadedBy User @relation("PhotosReevaluation", fields: [uploadedById], references: [id])
+
+  @@index([uploadedById])
 }
 
 // ─── Dashboard personnalisable ────────────────────────────────────────────────
